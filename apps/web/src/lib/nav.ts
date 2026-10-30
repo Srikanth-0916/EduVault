@@ -104,6 +104,12 @@ function aicteNav(roles: Role[]): NavGroup[] {
       icon: "institutions" as const,
       description: "Master data, campuses and programmes",
     });
+    nationalItems.push({
+      label: "Intake",
+      href: "/aicte/intake",
+      icon: "intake",
+      description: "Versioned regular and supernumerary allocations",
+    });
   }
 
   const oversightItems: NavItem[] = [];

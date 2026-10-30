@@ -24,13 +24,18 @@ from app.config import API_VERSION, get_settings
 from app.db import create_all
 from app.errors import AppError
 from app.routers import (
+    admin,
+    audit,
     auth,
     batches,
     cases,
     dashboards,
     enrollments,
     institutions,
+    notifications,
     programmes,
+    reports,
+    review,
     users,
 )
 
@@ -135,6 +140,11 @@ def create_app() -> FastAPI:
     app.include_router(batches.template_router, prefix="/api/v1")
     app.include_router(cases.router, prefix="/api/v1")
     app.include_router(dashboards.router, prefix="/api/v1")
+    app.include_router(review.router, prefix="/api/v1")
+    app.include_router(reports.router, prefix="/api/v1")
+    app.include_router(notifications.router, prefix="/api/v1")
+    app.include_router(audit.router, prefix="/api/v1")
+    app.include_router(admin.router, prefix="/api/v1")
 
     @app.exception_handler(AppError)
     async def handle_app_error(request: Request, exc: AppError) -> JSONResponse:

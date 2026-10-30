@@ -35,6 +35,7 @@ describe("role-aware navigation", () => {
       "National Overview",
       "Review Queue",
       "Institutions",
+      "Intake",
       "Cases",
       "Reports",
     ]);
@@ -53,6 +54,7 @@ describe("role-aware navigation", () => {
     expect(labels(navForRoles(["AUDITOR"]))).toEqual([
       "National Overview",
       "Institutions",
+      "Intake",
       "Cases",
       "Reports",
       "Audit Trail",

@@ -2,14 +2,15 @@
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Bell, CalendarDays, ChevronDown, LogOut, Menu, Settings2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { RoleBadge } from "@/components/role-badge";
-import { Tooltip } from "@/components/ui/tooltip";
+import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { areaLabel, navItemForPath } from "@/lib/nav";
-import type { NavGroup } from "@/lib/types";
+import type { NavGroup, NotificationListResponse } from "@/lib/types";
 import { initials } from "@/lib/utils";
 
 export function Topbar({
@@ -21,10 +22,16 @@ export function Topbar({
   pathname: string;
   onOpenMenu: () => void;
 }) {
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const router = useRouter();
   const [academicYear, setAcademicYear] = useState("2026-27");
   const current = navItemForPath(groups, pathname);
+  const notifications = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => api.get<NotificationListResponse>("/notifications?page=1&pageSize=1", token),
+    enabled: Boolean(token),
+    staleTime: 30_000,
+  });
 
   if (!user) return null;
 
@@ -78,16 +85,20 @@ export function Topbar({
         </div>
       </div>
 
-      <Tooltip content="Notifications arrive in Phase 3">
-        <button
-          type="button"
-          className="relative inline-flex size-10 items-center justify-center rounded-[8px] text-ink-soft hover:bg-surface-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          aria-label="Notifications (none in prototype yet)"
-        >
-          <Bell className="size-[18px]" aria-hidden="true" />
-          <span className="absolute right-2.5 top-2.5 size-1.5 rounded-full bg-accent ring-2 ring-surface" />
-        </button>
-      </Tooltip>
+      <button
+        type="button"
+        onClick={() => router.push("/notifications")}
+        className="relative inline-flex size-10 items-center justify-center rounded-[8px] text-ink-soft hover:bg-surface-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        aria-label={`Notifications${notifications.data?.unread ? `, ${notifications.data.unread} unread` : ""}`}
+        title="Notifications"
+      >
+        <Bell className="size-[18px]" aria-hidden="true" />
+        {notifications.data?.unread ? (
+          <span className="absolute -right-1 -top-1 flex min-w-4 items-center justify-center rounded-full bg-danger px-1 py-0.5 text-[9px] font-bold leading-none text-white ring-2 ring-surface">
+            {notifications.data.unread > 9 ? "9+" : notifications.data.unread}
+          </span>
+        ) : null}
+      </button>
 
       <span className="mx-1 hidden h-6 w-px bg-border sm:block" aria-hidden="true" />
 
