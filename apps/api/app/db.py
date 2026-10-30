@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Iterator
+from pathlib import Path
 
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
@@ -35,6 +36,10 @@ def _sqlite_connect_args() -> dict[str, bool]:
 
 
 def _create_engine(url: str) -> Engine:
+    if url.startswith("sqlite:///"):
+        db_path = url.removeprefix("sqlite:///")
+        if db_path and db_path != ":memory:":
+            Path(db_path).expanduser().parent.mkdir(parents=True, exist_ok=True)
     connect_args = _sqlite_connect_args() if url.startswith("sqlite") else {}
     engine = create_engine(url, pool_pre_ping=True, connect_args=connect_args)
     if url.startswith("sqlite"):
@@ -50,7 +55,7 @@ def _create_engine(url: str) -> Engine:
 
 def get_engine() -> Engine:
     """Return the process-wide engine, creating it on first use."""
-    global _engine
+    global _engine, _session_factory
     if _engine is None:
         _engine = _create_engine(_database_url())
         _session_factory = sessionmaker(

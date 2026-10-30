@@ -124,7 +124,7 @@ git commit -m "feat: scaffold APAAR-SDMV monorepo and data model"
 
 **Interfaces:**
 - Produces: `hash_password(str)`, `verify_password(str,str)`, `create_access_token(user) -> (token, expires_in)`, `decode_token(str) -> dict`.
-- Produces: `get_current_user`, `require_roles(*roles)`, `get_institution_scope(user) -> str | None`, `assert_institution_access(user, institution_id)`; raises `AppError(403, "FORBIDDEN")` and writes `SECURITY_ACCESS_DENIED` audit on cross-tenant attempts.
+- Produces: `get_current_user`, `require_roles(*roles)`, `get_institution_scope(user) -> str | None`, `assert_institution_access(db, user, institution_id, request=None)`; raises `AppError(403, "FORBIDDEN")` and writes `SECURITY_ACCESS_DENIED` audit on cross-tenant attempts.
 - Produces: `record_audit(db, *, actor, action, resource_type, resource_ref, reason=None, metadata=None, request=None)`.
 - Produces: `POST /api/v1/auth/login` body `{email,password}` → `{accessToken, expiresIn, user}`; `GET /api/v1/auth/me` → `UserContext`.
 - Produces: `UserContext = {id,email,fullName,roles,primaryRole,institutionId,institutionName,studentIdentityId,mfaEnabled}`.
@@ -148,11 +148,15 @@ def test_bad_password_is_generic(client, seeded):
     assert r.status_code == 401
     assert "password" not in r.json()["error"]["message"].lower()
 
-def test_cross_tenant_denied_and_audited(client, seeded):
-    headers = auth_headers(client, "operator@demo-ait.edu")
+def test_institution_user_list_is_admin_scoped(client, seeded):
+    headers = auth_headers(client, "admin@demo-ait.edu")
     r = client.get("/api/v1/institutions/me/users", headers=headers)
     assert r.status_code == 200
     assert all(u["institutionId"] == "inst_ait" for u in r.json()["items"])
+
+def test_operator_cannot_list_institution_users(client, seeded):
+    headers = auth_headers(client, "operator@demo-ait.edu")
+    assert client.get("/api/v1/institutions/me/users", headers=headers).status_code == 403
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**

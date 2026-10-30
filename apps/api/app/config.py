@@ -18,7 +18,7 @@ API_VERSION = "0.1.0"
 _ENV = Literal["development", "test", "production"]
 
 # Clearly non-production default secrets (demo/dev only).
-_DEV_JWT_SECRET = "dev-only-jwt-secret-change-me"
+_DEV_JWT_SECRET = "dev-only-jwt-secret-change-me-please-32-bytes"
 _DEV_APAAR_ENCRYPTION_KEY = "dev-only-apaar-encryption-key-change-me"
 _DEV_APAAR_LOOKUP_KEY = "dev-only-apaar-lookup-key-change-me"
 _DEV_RECEIPT_SIGNING_KEY = "dev-only-receipt-signing-key-change-me"
@@ -52,6 +52,9 @@ class Settings(BaseSettings):
         default=_DEV_RECEIPT_SIGNING_KEY, validation_alias="RECEIPT_SIGNING_KEY"
     )
     cors_origins: list[str] = Field(default=_DEFAULT_CORS_ORIGINS, validation_alias="CORS_ORIGINS")
+    access_token_minutes: int = Field(default=30, validation_alias="ACCESS_TOKEN_MINUTES")
+    jwt_issuer: str = Field(default="apaar-sdmv-api", validation_alias="JWT_ISSUER")
+    jwt_audience: str = Field(default="apaar-sdmv-web", validation_alias="JWT_AUDIENCE")
 
     @field_validator("cors_origins", mode="before")
     @classmethod

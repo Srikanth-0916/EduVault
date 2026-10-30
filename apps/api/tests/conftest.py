@@ -52,6 +52,16 @@ def db() -> Iterator[Session]:
 
 
 @pytest.fixture()
+def seeded(db: Session) -> Session:
+    """Core deterministic seed: institutions, programmes, users, memberships."""
+    from app.seed import seed_core
+
+    seed_core(db)
+    db.commit()
+    return db
+
+
+@pytest.fixture()
 def client(db: Session) -> Iterator[TestClient]:
     """FastAPI test client wired to the per-test SQLite session."""
     from app.db import get_db

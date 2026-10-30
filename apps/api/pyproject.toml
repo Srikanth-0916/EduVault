@@ -4,7 +4,11 @@ version = "0.1.0"
 description = "APAAR Student Data Management & Verification Platform (prototype) API"
 requires-python = ">=3.12"
 dependencies = [
+    "cryptography>=43,<47",
+    "email-validator>=2.2,<3",
     "fastapi>=0.162,<1",
+    "pyjwt>=2.9,<3",
+    "pwdlib[argon2]>=0.2,<1",
     "pydantic>=2,<3",
     "pydantic-settings>=2,<3",
     "sqlalchemy>=2.0,<2.1",

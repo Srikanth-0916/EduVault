@@ -23,6 +23,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.config import API_VERSION, get_settings
 from app.db import create_all
 from app.errors import AppError
+from app.routers import auth, users
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +108,8 @@ def create_app() -> FastAPI:
     app.add_middleware(RequestContextMiddleware)
 
     app.get("/api/v1/health", include_in_schema=True)(health)
+    app.include_router(auth.router, prefix="/api/v1")
+    app.include_router(users.router, prefix="/api/v1")
 
     @app.exception_handler(AppError)
     async def handle_app_error(request: Request, exc: AppError) -> JSONResponse:
