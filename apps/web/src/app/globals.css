@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens (design §6): ink sidebar, warm canvas, teal primary.
+ * Full component styling lands in the design-system task; these variables
+ * establish the palette so later screens stay consistent.
+ */
+
+@theme {
+  --color-ink: #0b1f33;
+  --color-canvas: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-primary: #0f766e;
+  --color-accent-amber: #b45309;
+  --color-danger: #b42318;
+  --color-border: #dde3ea;
+}
+
+:root {
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+}

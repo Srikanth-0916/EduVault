@@ -1,0 +1,75 @@
+# APAAR-SDMV prototype runtime: Postgres 16 + API + web console.
+#
+#   docker compose up --build
+#   API  http://localhost:8000  (GET /api/v1/health)
+#   Web  http://localhost:${WEB_PORT:-3000}
+#
+# All integrations are mock/sandbox; all data is synthetic.
+
+name: apaar-sdmv
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: apaar
+      POSTGRES_PASSWORD: apaar
+      POSTGRES_DB: apaar_sdmv
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apaar -d apaar_sdmv"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./apps/api
+    environment:
+      ENV: development
+      DATABASE_URL: postgresql+psycopg://apaar:apaar@db:5432/apaar_sdmv
+      JWT_SECRET: dev-compose-jwt-secret-change-me
+      APAAR_ENCRYPTION_KEY: dev-compose-apaar-encryption-key-change-me
+      APAAR_LOOKUP_KEY: dev-compose-apaar-lookup-key-change-me
+      RECEIPT_SIGNING_KEY: dev-compose-receipt-signing-key-change-me
+      CORS_ORIGINS: http://localhost:${WEB_PORT:-3000},http://127.0.0.1:${WEB_PORT:-3000}
+    ports:
+      - "8000:8000"
+    volumes:
+      - api_storage:/app/var/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  web:
+    build:
+      context: ./apps/web
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
+    environment:
+      NODE_ENV: production
+      PORT: ${WEB_PORT:-3000}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  db_data:
+  api_storage:

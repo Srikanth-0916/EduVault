@@ -1,0 +1,37 @@
+[project]
+name = "apaar-sdmv-api"
+version = "0.1.0"
+description = "APAAR Student Data Management & Verification Platform (prototype) API"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.162,<1",
+    "pydantic>=2,<3",
+    "pydantic-settings>=2,<3",
+    "sqlalchemy>=2.0,<2.1",
+    "uvicorn[standard]>=0.34",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9",
+    "ruff>=0.14",
+    "httpx>=0.28",
+    "httpx2>=1.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+filterwarnings = ["error::DeprecationWarning:app.*"]
