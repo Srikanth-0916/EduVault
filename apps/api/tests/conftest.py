@@ -62,6 +62,17 @@ def seeded(db: Session) -> Session:
 
 
 @pytest.fixture()
+def sample_csv():
+    """Return a callable that loads a demo CSV by file name."""
+    root = Path(__file__).resolve().parents[3] / "data" / "demo"
+
+    def _load(name: str) -> bytes:
+        return (root / name).read_bytes()
+
+    return _load
+
+
+@pytest.fixture()
 def client(db: Session) -> Iterator[TestClient]:
     """FastAPI test client wired to the per-test SQLite session."""
     from app.db import get_db

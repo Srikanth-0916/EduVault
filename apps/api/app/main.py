@@ -23,7 +23,16 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.config import API_VERSION, get_settings
 from app.db import create_all
 from app.errors import AppError
-from app.routers import auth, users
+from app.routers import (
+    auth,
+    batches,
+    cases,
+    dashboards,
+    enrollments,
+    institutions,
+    programmes,
+    users,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +44,17 @@ SECURITY_HEADERS = {
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
 }
+
+
+def _json_safe(value: Any) -> Any:
+    """Convert validation context exceptions into safe JSON values."""
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, BaseException):
+        return str(value)
+    return value
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
@@ -51,9 +71,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         return response
 
 
-def _error_body(
-    request: Request, code: str, message: str, details: Any = None
-) -> dict[str, Any]:
+def _error_body(request: Request, code: str, message: str, details: Any = None) -> dict[str, Any]:
     trace_id = getattr(request.state, "trace_id", None) or f"trc_{uuid4()}"
     return {
         "error": {"code": code, "message": message, "details": details},
@@ -110,6 +128,13 @@ def create_app() -> FastAPI:
     app.get("/api/v1/health", include_in_schema=True)(health)
     app.include_router(auth.router, prefix="/api/v1")
     app.include_router(users.router, prefix="/api/v1")
+    app.include_router(institutions.router, prefix="/api/v1")
+    app.include_router(programmes.router, prefix="/api/v1")
+    app.include_router(enrollments.router, prefix="/api/v1")
+    app.include_router(batches.router, prefix="/api/v1")
+    app.include_router(batches.template_router, prefix="/api/v1")
+    app.include_router(cases.router, prefix="/api/v1")
+    app.include_router(dashboards.router, prefix="/api/v1")
 
     @app.exception_handler(AppError)
     async def handle_app_error(request: Request, exc: AppError) -> JSONResponse:
@@ -120,7 +145,7 @@ def create_app() -> FastAPI:
     async def handle_validation_error(
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
-        details = exc.errors()
+        details = _json_safe(exc.errors())
         for err in details:
             err.pop("url", None)  # Swagger validator URL noise; keep payload small
         body = _error_body(request, "VALIDATION_ERROR", "Request payload is invalid", details)

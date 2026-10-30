@@ -100,7 +100,19 @@ def create_all(engine: Engine | None = None) -> None:
 
 
 def drop_all(engine: Engine | None = None) -> None:
-    """Drop the prototype schema (used between tests)."""
+    """Drop the prototype schema (used between tests).
+
+    SQLite has no ``DROP TABLE ... CASCADE``; the schema contains a deliberate
+    provenance cycle (enrollment -> batch row -> enrollment), so foreign-key
+    enforcement is suspended for the teardown drop only.
+    """
     from app import models
 
-    models.Base.metadata.drop_all(engine or get_engine())
+    target = engine or get_engine()
+    if target.dialect.name == "sqlite":
+        with target.begin() as connection:
+            connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+            models.Base.metadata.drop_all(bind=connection)
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+        return
+    models.Base.metadata.drop_all(target)

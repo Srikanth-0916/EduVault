@@ -82,6 +82,7 @@ class SubmissionBatch(TimestampMixin, Base):
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     decided_by: Mapped[str | None] = mapped_column(String(36), default=None)
     assigned_reviewer_id: Mapped[str | None] = mapped_column(String(36), default=None)
+    decision_history: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
     created_by: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"))
 
 

@@ -63,14 +63,20 @@ INSTITUTION_IDS = {
 }
 CAMPUS_IDS = {
     "AIT": "camp_ait_main",
+    "AIT_NORTH": "camp_ait_north",
     "BIE": "camp_bie_main",
+    "BIE_CITY": "camp_bie_city",
     "CIM": "camp_cim_main",
 }
 PROGRAMME_IDS = {
     "AIT_CSE": "prog_ait_cse",
     "AIT_ECE": "prog_ait_ece",
+    "AIT_AIML": "prog_ait_aiml",
+    "AIT_MECH": "prog_ait_mech",
     "BIE_MECH": "prog_bie_mech",
+    "BIE_CIVIL": "prog_bie_civil",
     "CIM_MBA": "prog_cim_mba",
+    "CIM_BBA": "prog_cim_bba",
 }
 USER_IDS = {
     "ait_admin": "usr_ait_admin",

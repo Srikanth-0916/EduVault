@@ -1,0 +1,5 @@
+institution_student_id,apaar_id,student_name,programme_code,campus_code,academic_year,admission_date,exit_date,enrollment_status,seat_classification,admission_category,nri_status,oci_status,foreign_national_status,approval_reference,date_of_birth,gender
+CSV2026001,910000000001,CSV Student One,CSE,AIT-MAIN,2026-27,2026-07-20,,ACTIVE,APPROVED_REGULAR,GENERAL,NO,NO,NO,,2007-03-12,FEMALE
+CSV2026002,910000000002,CSV Student Two,ECE,AIT-MAIN,2026-27,2026-07-20,,ACTIVE,APPROVED_REGULAR,OBC,NO,NO,NO,,2007-05-22,MALE
+CSV2026003,910000000003,CSV Student Three,ECE,AIT-MAIN,2026-27,2026-07-21,,ACTIVE,APPROVED_SUPERNUMERARY,SC,NO,NO,NO,AICTE/SN/2026-27/AIT-ECE,2007-08-01,FEMALE
+CSV2026004,910000000004,CSV Student Four,AIML,AIT-NORTH,2026-27,2026-07-21,,ACTIVE,APPROVED_REGULAR,GENERAL,YES,NO,NO,,2007-09-14,MALE

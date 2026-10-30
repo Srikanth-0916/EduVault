@@ -102,4 +102,6 @@ export const api = {
     apiFetch<T>(path, { method: "POST", body, token }),
   patch: <T>(path: string, body?: unknown, token?: string | null) =>
     apiFetch<T>(path, { method: "PATCH", body, token }),
+  upload: <T>(path: string, body: FormData, token?: string | null) =>
+    apiFetch<T>(path, { method: "POST", body, token }),
 };
