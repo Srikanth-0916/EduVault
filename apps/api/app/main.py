@@ -36,7 +36,9 @@ from app.routers import (
     programmes,
     reports,
     review,
+    student,
     users,
+    verification,
 )
 
 logger = logging.getLogger(__name__)
@@ -145,6 +147,9 @@ def create_app() -> FastAPI:
     app.include_router(notifications.router, prefix="/api/v1")
     app.include_router(audit.router, prefix="/api/v1")
     app.include_router(admin.router, prefix="/api/v1")
+    app.include_router(verification.router, prefix="/api/v1")
+    app.include_router(verification.public_router, prefix="/api/v1")
+    app.include_router(student.router, prefix="/api/v1")
 
     @app.exception_handler(AppError)
     async def handle_app_error(request: Request, exc: AppError) -> JSONResponse:

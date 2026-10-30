@@ -14,7 +14,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, pk, sa_enum, utc_now, uuid_fk
@@ -90,6 +90,7 @@ class VerificationRequest(TimestampMixin, Base):
     purpose: Mapped[str] = mapped_column(String(512))
     requested_claims: Mapped[dict[str, Any]] = mapped_column(JSON)  # list of claim keys
     legal_basis: Mapped[str] = mapped_column(sa_enum(LegalBasis))
+    expires_in_hours: Mapped[int] = mapped_column(Integer, default=24)
     status: Mapped[str] = mapped_column(
         sa_enum(VerificationRequestStatus),
         default=VerificationRequestStatus.PENDING_AUTHORIZATION.value,
