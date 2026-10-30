@@ -266,6 +266,7 @@ Sensitivity: **Public** (non-personal), **Internal** (administrative), **Persona
 | `purpose` | string(512) | Internal | Purpose limitation |
 | `requested_claims` | JSON | Internal | Allow-listed claims |
 | `legal_basis` | enum | Internal | Basis |
+| `expires_in_hours` | int | Internal | Requested link lifetime (1–168 h) |
 | `status` | enum | Internal | Pending/authorized/viewed/consumed/expired/revoked/denied |
 | `single_use` | bool | Internal | Replay policy |
 | `token_hash`, `token_jti` | string | Security | Token material; raw token never stored |

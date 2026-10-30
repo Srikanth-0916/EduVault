@@ -17,12 +17,14 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import API_VERSION, get_settings
-from app.db import create_all
+from app.db import create_all, get_engine
 from app.errors import AppError
+from app.middleware import RateLimitMiddleware, install_log_redaction
 from app.routers import (
     admin,
     audit,
@@ -50,6 +52,10 @@ SECURITY_HEADERS = {
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "Cross-Origin-Resource-Policy": "same-site",
+    "X-Robots-Tag": "noindex, nofollow",
 }
 
 
@@ -75,6 +81,12 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         response.headers.setdefault("Cache-Control", "no-store")
         for name, value in SECURITY_HEADERS.items():
             response.headers.setdefault(name, value)
+        if get_settings().is_production:
+            response.headers.setdefault(
+                "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+            )
+        if "server" in response.headers:
+            del response.headers["server"]
         return response
 
 
@@ -86,9 +98,20 @@ def _error_body(request: Request, code: str, message: str, details: Any = None) 
     }
 
 
-async def health() -> JSONResponse:
-    """GET /api/v1/health — liveness for compose, CI and demos."""
-    return JSONResponse({"status": "ok", "version": API_VERSION})
+def health() -> JSONResponse:
+    """GET /api/v1/health — readiness for compose, CI and demos."""
+    try:
+        with get_engine().connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception:
+        logger.exception("Health database check failed")
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unavailable", "version": API_VERSION},
+        )
+    return JSONResponse(
+        {"status": "ok", "version": API_VERSION, "database": "ok"},
+    )
 
 
 def create_app() -> FastAPI:
@@ -102,8 +125,14 @@ def create_app() -> FastAPI:
         if settings.env != "test":
             try:
                 create_all()
+                if settings.env == "development" and settings.auto_seed:
+                    from app.seed import seed
+
+                    counts = seed()
+                    logger.info("Synthetic demo seed ready: %s", counts)
             except Exception:  # pragma: no cover - surfaced at deploy time
                 logger.exception("Schema bootstrap failed")
+                raise
         logger.info("APAAR-SDMV API %s starting (env=%s)", API_VERSION, settings.env)
         yield
         logger.info("APAAR-SDMV API stopped")
@@ -120,6 +149,10 @@ def create_app() -> FastAPI:
         openapi_url="/api/v1/openapi.json",
     )
 
+    install_log_redaction()
+    # Added first so the request-context middleware stays outermost and can
+    # attach trace/security headers to rate-limit denials too.
+    app.add_middleware(RateLimitMiddleware)
     if settings.cors_origins:
         app.add_middleware(
             CORSMiddleware,

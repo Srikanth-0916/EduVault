@@ -8,10 +8,10 @@ local development works without a `.env`; these defaults are refused when
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 API_VERSION = "0.1.0"
 
@@ -51,10 +51,14 @@ class Settings(BaseSettings):
     receipt_signing_key: str = Field(
         default=_DEV_RECEIPT_SIGNING_KEY, validation_alias="RECEIPT_SIGNING_KEY"
     )
-    cors_origins: list[str] = Field(default=_DEFAULT_CORS_ORIGINS, validation_alias="CORS_ORIGINS")
+    cors_origins: Annotated[list[str], NoDecode] = Field(
+        default=_DEFAULT_CORS_ORIGINS, validation_alias="CORS_ORIGINS"
+    )
     access_token_minutes: int = Field(default=30, validation_alias="ACCESS_TOKEN_MINUTES")
     jwt_issuer: str = Field(default="apaar-sdmv-api", validation_alias="JWT_ISSUER")
     jwt_audience: str = Field(default="apaar-sdmv-web", validation_alias="JWT_AUDIENCE")
+    web_base_url: str = Field(default="http://localhost:3000", validation_alias="WEB_BASE_URL")
+    auto_seed: bool = Field(default=True, validation_alias="AUTO_SEED")
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -81,7 +85,11 @@ class Settings(BaseSettings):
                 ("apaar_lookup_key", self.apaar_lookup_key),
                 ("receipt_signing_key", self.receipt_signing_key),
             ):
-                if not secret or secret.startswith("dev-only-"):
+                if (
+                    not secret
+                    or secret.startswith(("dev-only-", "dev-compose-"))
+                    or "change-me" in secret
+                ):
                     insecure.append(name)
             if insecure:
                 raise RuntimeError(

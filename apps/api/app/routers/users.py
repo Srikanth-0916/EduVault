@@ -94,8 +94,7 @@ def invite_user(
     role = payload.role.strip().upper()
     if role not in INSTITUTION_STAFF_ROLES:
         raise validation_error(
-            "Only institution administrator, operator, or nodal officer roles "
-            "can be invited here",
+            "Only institution administrator, operator, or nodal officer roles can be invited here",
             {"role": role},
         )
 

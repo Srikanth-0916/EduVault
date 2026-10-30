@@ -9,7 +9,8 @@ Target: WCAG 2.1 AA intent for key user journeys, subject to applicable governme
 - Visible focus rings on all interactive elements (≥3:1 contrast).
 - Form labels are programmatically associated; errors are announced with `aria-live` and linked to fields.
 - Dialogs use Radix focus trapping, `Escape` to close, and title/description wiring.
-- Tables have captions and column scopes; sortable headers expose `aria-sort`.
+- Tables use `<caption>`, `<thead>`, column scopes and labelled scroll regions; batch row summaries use a screen-reader caption rather than a stray `<th>`.
+- Sortable headers (where present) expose `aria-sort`.
 - Status is never conveyed by color alone: every status chip has text and an accessible label.
 - Charts include a text summary/table fallback and `role="img"` descriptions.
 - Reduced motion is respected via `prefers-reduced-motion`.
@@ -27,6 +28,12 @@ Target: WCAG 2.1 AA intent for key user journeys, subject to applicable governme
 - [ ] Color-blind simulation: status chips still distinguishable by text/icon.
 - [ ] Public verification page accessible without authentication and without motion.
 - [ ] No time-limited UI except token expiry, which is displayed as text with sufficient warning.
+
+## Automated evidence
+
+- Vitest component tests cover navigation/role guards, intake form validation and the share wizard.
+- Playwright Chromium flows exercise login, institution dashboard, batch upload/validation, attestation, reviewer decision, share creation, public verification, revocation and generic denial. Screenshots are in `docs/evidence/`.
+- The browser run is a smoke check, not an accessibility audit. The manual checklist above remains open.
 
 ## Known gaps
 

@@ -12,13 +12,9 @@ from tests.factories import auth_headers
 from tests.helpers import create_batch, upload, upload_and_validate
 
 
-def test_mixed_batch_creates_expected_findings_and_cases(
-    client, seeded, sample_csv
-) -> None:
+def test_mixed_batch_creates_expected_findings_and_cases(client, seeded, sample_csv) -> None:
     headers = auth_headers(client, "operator@demo-ait.edu")
-    detail = upload_and_validate(
-        client, headers, sample_csv("batch_mixed.csv"), "mixed.csv"
-    )
+    detail = upload_and_validate(client, headers, sample_csv("batch_mixed.csv"), "mixed.csv")
     assert detail["status"] == "VALIDATION_FAILED"
     rules = {finding["ruleId"] for finding in detail["findings"]}
     expected = {
@@ -43,9 +39,7 @@ def test_mixed_batch_creates_expected_findings_and_cases(
     assert "920000000003" not in evidence_text
 
 
-def test_capacity_warning_is_explanatory_and_non_blocking(
-    client, seeded, sample_csv
-) -> None:
+def test_capacity_warning_is_explanatory_and_non_blocking(client, seeded, sample_csv) -> None:
     supervisor = auth_headers(client, "supervisor@aicte.demo")
     patched = client.patch(
         "/api/v1/intake-allocations/alloc_ait_ece_regular",
@@ -55,13 +49,9 @@ def test_capacity_warning_is_explanatory_and_non_blocking(
     assert patched.status_code == 200, patched.text
 
     operator = auth_headers(client, "operator@demo-ait.edu")
-    detail = upload_and_validate(
-        client, operator, sample_csv("batch_valid.csv"), "valid.csv"
-    )
+    detail = upload_and_validate(client, operator, sample_csv("batch_valid.csv"), "valid.csv")
     assert detail["status"] == "READY_FOR_ATTESTATION"
-    capacity_findings = [
-        item for item in detail["findings"] if item["ruleId"] == "BR-008"
-    ]
+    capacity_findings = [item for item in detail["findings"] if item["ruleId"] == "BR-008"]
     assert capacity_findings
     evidence = capacity_findings[0]["evidence"]
     assert evidence["projected"] > evidence["approved"]
@@ -70,9 +60,7 @@ def test_capacity_warning_is_explanatory_and_non_blocking(
 
 def test_supernumerary_without_reference_blocks(client, seeded, sample_csv) -> None:
     headers = auth_headers(client, "operator@demo-ait.edu")
-    detail = upload_and_validate(
-        client, headers, sample_csv("batch_mixed.csv"), "mixed.csv"
-    )
+    detail = upload_and_validate(client, headers, sample_csv("batch_mixed.csv"), "mixed.csv")
     finding = next(item for item in detail["findings"] if item["ruleId"] == "BR-009")
     assert finding["code"] == "SUPERNUMERARY_REFERENCE_REQUIRED"
     assert finding["blocking"] is True

@@ -59,11 +59,7 @@ def validate_apaar_format(value: str | None) -> dict[str, str]:
 def _upgrade_status(current: str | None, requested: str) -> str:
     """Never downgrade an external outcome during a re-import."""
     current = current or IdentityStatus.MISSING.value
-    return (
-        requested
-        if _STATUS_RANK.get(requested, 0) >= _STATUS_RANK.get(current, 0)
-        else current
-    )
+    return requested if _STATUS_RANK.get(requested, 0) >= _STATUS_RANK.get(current, 0) else current
 
 
 def upsert_student_identity(
@@ -81,11 +77,7 @@ def upsert_student_identity(
     normalized = normalize_apaar(raw_apaar)
 
     if not is_valid_apaar(normalized):
-        derived = (
-            IdentityStatus.MISSING.value
-            if not normalized
-            else IdentityStatus.MALFORMED.value
-        )
+        derived = IdentityStatus.MISSING.value if not normalized else IdentityStatus.MALFORMED.value
         identity = StudentIdentity(
             identifier_status=derived,
             apaar_ciphertext=None,
@@ -99,9 +91,7 @@ def upsert_student_identity(
 
     assert normalized is not None
     token = apaar_lookup_token(normalized)
-    existing = db.scalar(
-        select(StudentIdentity).where(StudentIdentity.apaar_lookup_token == token)
-    )
+    existing = db.scalar(select(StudentIdentity).where(StudentIdentity.apaar_lookup_token == token))
     if existing is not None:
         existing.identifier_status = _upgrade_status(existing.identifier_status, requested)
         return existing

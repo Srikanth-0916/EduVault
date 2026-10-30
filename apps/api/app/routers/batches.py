@@ -52,6 +52,9 @@ _NATIONAL_READ = {"AICTE_REVIEWER", "AICTE_SUPERVISOR", "SYSTEM_ADMIN", "AUDITOR
 _NATIONAL_DECIDE = {"AICTE_REVIEWER", "AICTE_SUPERVISOR", "SYSTEM_ADMIN"}
 _NATIONAL_NOTIFY = {"AICTE_REVIEWER", "AICTE_SUPERVISOR"}
 
+_ALLOWED_UPLOAD_TYPES = {"text/csv", "application/csv", "text/plain"}
+_SIZE_ERROR_CODES = {"FILE_TOO_LARGE", "TOO_MANY_ROWS"}
+
 
 def _latest_run(db: Session, batch_id: str) -> ValidationRun | None:
     return db.scalar(
@@ -228,9 +231,7 @@ def list_batches(
         )
     if academic_year:
         statement = statement.where(SubmissionBatch.academic_year == academic_year)
-        count_statement = count_statement.where(
-            SubmissionBatch.academic_year == academic_year
-        )
+        count_statement = count_statement.where(SubmissionBatch.academic_year == academic_year)
     if status:
         statement = statement.where(SubmissionBatch.status == status)
         count_statement = count_statement.where(SubmissionBatch.status == status)
@@ -315,13 +316,27 @@ async def upload_batch_file(
     if any(row.enrollment_id for row in existing_rows):
         raise conflict("This batch already has committed enrollments; use a new batch")
 
-    content = await file.read()
+    filename = Path(file.filename or "").name
+    if Path(filename).suffix.lower() != ".csv":
+        raise AppError(415, "UNSUPPORTED_FILE_TYPE", "Only .csv uploads are accepted")
+    media_type = (file.content_type or "").split(";", 1)[0].strip().lower()
+    if media_type not in _ALLOWED_UPLOAD_TYPES:
+        raise AppError(
+            415,
+            "UNSUPPORTED_MEDIA_TYPE",
+            "CSV uploads must use text/csv or text/plain",
+        )
+    if file.size is not None and file.size > MAX_UPLOAD_BYTES:
+        raise AppError(413, "FILE_TOO_LARGE", "CSV uploads are limited to 5 MB")
+
+    content = await file.read(MAX_UPLOAD_BYTES + 1)
     if len(content) > MAX_UPLOAD_BYTES:
         raise AppError(413, "FILE_TOO_LARGE", "CSV uploads are limited to 5 MB")
     parsed = parse_csv(content)
     if parsed.errors:
+        too_large = any(item.get("code") in _SIZE_ERROR_CODES for item in parsed.errors)
         raise AppError(
-            422,
+            413 if too_large else 422,
             "CSV_PARSE_ERROR",
             "The CSV could not be accepted",
             {"errors": parsed.errors},
@@ -349,8 +364,7 @@ async def upload_batch_file(
                 batch_id=batch.id,
                 source_row_number=int(parsed_row["row_number"]),
                 student_name=str(values.get("student_name") or "").strip() or None,
-                student_local_id=str(values.get("institution_student_id") or "").strip()
-                or None,
+                student_local_id=str(values.get("institution_student_id") or "").strip() or None,
                 apaar_last4=str(safe.get("apaarLast4") or "") or None,
                 row_status=RowStatus.PENDING.value,
                 raw_data=safe,
@@ -470,9 +484,7 @@ def patch_batch_row(
         prepared = prepare_row(source)
         for key in ("apaarIdCiphertext", "apaarStatus", "apaarMasked", "apaarLast4"):
             safe.pop(key, None)
-        safe.update(
-            {key: value for key, value in prepared.items() if key.startswith("apaar")}
-        )
+        safe.update({key: value for key, value in prepared.items() if key.startswith("apaar")})
     row.raw_data = safe
     row.student_name = str(safe.get("student_name") or "") or None
     row.student_local_id = str(safe.get("institution_student_id") or "") or None

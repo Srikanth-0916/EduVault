@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/select";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -80,7 +81,7 @@ export function RowResultsTable({
       </div>
       <div className="overflow-hidden rounded-[12px] border border-border bg-surface shadow-card">
         <Table>
-          <TableHead className="sr-only">Batch row results</TableHead>
+          <TableCaption className="sr-only">Batch row results</TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead>Row</TableHead>

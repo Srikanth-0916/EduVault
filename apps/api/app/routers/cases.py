@@ -86,9 +86,7 @@ def list_cases(
     count_statement = select(func.count(DuplicateCase.id))
     if user.institution_id:
         statement = statement.where(DuplicateCase.institution_id == user.institution_id)
-        count_statement = count_statement.where(
-            DuplicateCase.institution_id == user.institution_id
-        )
+        count_statement = count_statement.where(DuplicateCase.institution_id == user.institution_id)
     if status:
         statement = statement.where(DuplicateCase.status == status)
         count_statement = count_statement.where(DuplicateCase.status == status)

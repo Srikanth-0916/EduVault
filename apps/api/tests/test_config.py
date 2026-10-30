@@ -31,6 +31,11 @@ def test_production_refuses_default_secrets():
         Settings(**_prod_kwargs(jwt_secret="dev-only-jwt-secret-change-me"))
 
 
+def test_production_refuses_compose_placeholder_secrets():
+    with pytest.raises(RuntimeError, match="jwt_secret"):
+        Settings(**_prod_kwargs(jwt_secret="dev-compose-jwt-secret-change-me"))
+
+
 def test_production_refuses_non_postgres_database():
     with pytest.raises(RuntimeError, match="database_url"):
         Settings(**_prod_kwargs(database_url="sqlite:///./var/app.db"))
@@ -40,3 +45,12 @@ def test_production_accepts_real_secret_values():
     settings = Settings(**_prod_kwargs())
     assert settings.is_production
     assert settings.jwt_secret == "strong-random-production-secret"
+
+
+def test_cors_origins_accept_comma_separated_env(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+    settings = Settings()
+    assert settings.cors_origins == [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]

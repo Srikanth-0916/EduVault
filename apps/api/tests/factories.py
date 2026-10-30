@@ -58,11 +58,7 @@ def make_user(
     db.add(user)
     db.flush()
 
-    scope = (
-        MembershipScope.INSTITUTION.value
-        if institution_id
-        else MembershipScope.NATIONAL.value
-    )
+    scope = MembershipScope.INSTITUTION.value if institution_id else MembershipScope.NATIONAL.value
     db.add(
         OrganizationMembership(
             user_id=user.id,
@@ -78,9 +74,7 @@ def make_user(
 
 
 def auth_headers(client, email: str, password: str = DEMO_PASSWORD) -> dict[str, str]:
-    response = client.post(
-        "/api/v1/auth/login", json={"email": email, "password": password}
-    )
+    response = client.post("/api/v1/auth/login", json={"email": email, "password": password})
     assert response.status_code == 200, response.text
     return {"Authorization": f"Bearer {response.json()['accessToken']}"}
 

@@ -17,6 +17,7 @@ os.environ.setdefault("DATABASE_URL", "sqlite:///./var/test_api.db")
 import pytest
 from app.db import create_all, drop_all, get_engine, reset_engine
 from app.main import create_app
+from app.middleware import reset_rate_limits
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
@@ -78,6 +79,7 @@ def client(db: Session) -> Iterator[TestClient]:
     from app.db import get_db
     from fastapi.testclient import TestClient
 
+    reset_rate_limits()
     application = create_app()
 
     def override_get_db() -> Iterator[Session]:

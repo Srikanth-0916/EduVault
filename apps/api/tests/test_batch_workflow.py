@@ -13,9 +13,7 @@ def _ready_batch(client, sample_csv) -> tuple[str, dict, dict]:
     batch = create_batch(client, operator)
     uploaded = upload(client, operator, batch["id"], sample_csv("batch_valid.csv"))
     assert uploaded.status_code == 200, uploaded.text
-    validated = client.post(
-        f"/api/v1/submission-batches/{batch['id']}/validate", headers=operator
-    )
+    validated = client.post(f"/api/v1/submission-batches/{batch['id']}/validate", headers=operator)
     assert validated.status_code == 200, validated.text
     assert validated.json()["status"] == "READY_FOR_ATTESTATION"
     return batch["id"], operator, validated.json()
@@ -25,9 +23,7 @@ def test_submission_requires_attestation_and_records_receipt(client, seeded, sam
     batch_id, operator, _ = _ready_batch(client, sample_csv)
     nodal = auth_headers(client, "nodal@demo-ait.edu")
 
-    premature = client.post(
-        f"/api/v1/submission-batches/{batch_id}/submit", headers=nodal
-    )
+    premature = client.post(f"/api/v1/submission-batches/{batch_id}/submit", headers=nodal)
     assert premature.status_code == 409
 
     attested = client.post(
@@ -38,15 +34,11 @@ def test_submission_requires_attestation_and_records_receipt(client, seeded, sam
     assert attested.status_code == 200, attested.text
     assert attested.json()["attestedAt"]
 
-    submitted = client.post(
-        f"/api/v1/submission-batches/{batch_id}/submit", headers=nodal
-    )
+    submitted = client.post(f"/api/v1/submission-batches/{batch_id}/submit", headers=nodal)
     assert submitted.status_code == 200, submitted.text
     assert submitted.json()["status"] == "UNDER_AICTE_REVIEW"
 
-    receipt = client.get(
-        f"/api/v1/submission-batches/{batch_id}/receipt", headers=operator
-    )
+    receipt = client.get(f"/api/v1/submission-batches/{batch_id}/receipt", headers=operator)
     assert receipt.status_code == 200, receipt.text
     body = receipt.json()
     assert body["checksum"]
@@ -62,9 +54,7 @@ def test_reviewer_accepts_and_enrollments_are_acknowledged(client, seeded, db, s
         json={"declaration": True, "attestationName": "Nisha Kulkarni"},
         headers=nodal,
     )
-    submitted = client.post(
-        f"/api/v1/submission-batches/{batch_id}/submit", headers=nodal
-    )
+    submitted = client.post(f"/api/v1/submission-batches/{batch_id}/submit", headers=nodal)
     assert submitted.status_code == 200
 
     reviewer = auth_headers(client, "reviewer@aicte.demo")
@@ -105,9 +95,7 @@ def test_reviewer_return_then_resubmission_does_not_double_count(
     assert returned.status_code == 200
     assert returned.json()["status"] == "RETURNED_FOR_CORRECTION"
 
-    revalidated = client.post(
-        f"/api/v1/submission-batches/{batch_id}/validate", headers=operator
-    )
+    revalidated = client.post(f"/api/v1/submission-batches/{batch_id}/validate", headers=operator)
     assert revalidated.status_code == 200, revalidated.text
     assert revalidated.json()["status"] == "READY_FOR_ATTESTATION"
     client.post(
@@ -115,9 +103,7 @@ def test_reviewer_return_then_resubmission_does_not_double_count(
         json={"declaration": True, "attestationName": "Nisha Kulkarni"},
         headers=nodal,
     )
-    resubmitted = client.post(
-        f"/api/v1/submission-batches/{batch_id}/submit", headers=nodal
-    )
+    resubmitted = client.post(f"/api/v1/submission-batches/{batch_id}/submit", headers=nodal)
     assert resubmitted.status_code == 200, resubmitted.text
     assert resubmitted.json()["version"] == 2
 

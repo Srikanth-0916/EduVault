@@ -86,9 +86,7 @@ def test_admin_can_invite_and_new_user_can_login(client, seeded, db: Session):
     assert login.status_code == 200
     assert login.json()["user"]["primaryRole"] == "INSTITUTION_OPERATOR"
 
-    audit = db.scalar(
-        select(AuditEvent).where(AuditEvent.action == "USER_INVITED")
-    )
+    audit = db.scalar(select(AuditEvent).where(AuditEvent.action == "USER_INVITED"))
     assert audit is not None
     assert body["tempPassword"] not in str(audit.metadata_)
 
@@ -121,9 +119,7 @@ def test_duplicate_invitation_is_conflict(client, seeded):
         ).status_code
         == 201
     )
-    second = client.post(
-        "/api/v1/institutions/me/users/invitations", headers=headers, json=payload
-    )
+    second = client.post("/api/v1/institutions/me/users/invitations", headers=headers, json=payload)
     assert second.status_code == 409
 
 

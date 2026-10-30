@@ -151,9 +151,7 @@ def run_validation(db: Session, batch: SubmissionBatch, actor: UserContext) -> V
         select(Programme).where(Programme.institution_id == batch.institution_id)
     ).all()
     programme_by_code = {programme.programme_code.upper(): programme for programme in programmes}
-    campuses = db.scalars(
-        select(Campus).where(Campus.institution_id == batch.institution_id)
-    ).all()
+    campuses = db.scalars(select(Campus).where(Campus.institution_id == batch.institution_id)).all()
     campus_by_code = {campus.campus_code.upper(): campus for campus in campuses}
 
     findings: list[ValidationFinding] = []
@@ -178,9 +176,7 @@ def run_validation(db: Session, batch: SubmissionBatch, actor: UserContext) -> V
 
         identity: StudentIdentity | None = None
         if format_state["status"] == IdentityStatus.FORMAT_VALID.value and raw:
-            identity = upsert_student_identity(
-                db, raw, IdentityStatus.FORMAT_VALID.value
-            )
+            identity = upsert_student_identity(db, raw, IdentityStatus.FORMAT_VALID.value)
             identity_cache[identity.id] = identity
             token_rows[apaar_lookup_token(raw)].append(row)
         else:
@@ -270,9 +266,7 @@ def run_validation(db: Session, batch: SubmissionBatch, actor: UserContext) -> V
                 row_errors=row_errors,
             )
 
-        programme = programme_by_code.get(
-            str(values.get("programme_code") or "").upper()
-        )
+        programme = programme_by_code.get(str(values.get("programme_code") or "").upper())
         campus = campus_by_code.get(str(values.get("campus_code") or "").upper())
         if programme is None:
             _add_finding(
@@ -308,11 +302,7 @@ def run_validation(db: Session, batch: SubmissionBatch, actor: UserContext) -> V
                 row_findings=row_findings,
                 row_errors=row_errors,
             )
-        if (
-            programme is not None
-            and campus is not None
-            and campus.id != programme.campus_id
-        ):
+        if programme is not None and campus is not None and campus.id != programme.campus_id:
             _add_finding(
                 db,
                 run=run,
@@ -475,10 +465,7 @@ def run_validation(db: Session, batch: SubmissionBatch, actor: UserContext) -> V
             tri[key] = value
 
         super_ref = str(values.get("approval_reference") or "").strip() or None
-        if (
-            seat_classification == SeatClassification.APPROVED_SUPERNUMERARY.value
-            and not super_ref
-        ):
+        if seat_classification == SeatClassification.APPROVED_SUPERNUMERARY.value and not super_ref:
             _add_finding(
                 db,
                 run=run,
@@ -511,8 +498,7 @@ def run_validation(db: Session, batch: SubmissionBatch, actor: UserContext) -> V
                 severity=Severity.INFO.value,
                 blocking=False,
                 message=(
-                    "NRI/OCI/foreign-national attributes are present; "
-                    "confirm the applicable policy"
+                    "NRI/OCI/foreign-national attributes are present; confirm the applicable policy"
                 ),
                 field="nriStatus",
                 evidence={
@@ -532,9 +518,7 @@ def run_validation(db: Session, batch: SubmissionBatch, actor: UserContext) -> V
             if identity.id not in verified_ids:
                 verified_ids.add(identity.id)
                 try:
-                    verify_identity(
-                        db, identity, actor=actor, purpose="batch validation"
-                    )
+                    verify_identity(db, identity, actor=actor, purpose="batch validation")
                 except Exception:
                     # External verification is advisory; a provider failure must
                     # not block the batch. The unavailable state is visible.
@@ -614,8 +598,7 @@ def run_validation(db: Session, batch: SubmissionBatch, actor: UserContext) -> V
         for enrollment in existing:
             existing_by_identity[enrollment.student_identity_id].append(enrollment)
     institution_names = {
-        institution.id: institution.name
-        for institution in db.scalars(select(Institution)).all()
+        institution.id: institution.name for institution in db.scalars(select(Institution)).all()
     }
 
     for row in rows:

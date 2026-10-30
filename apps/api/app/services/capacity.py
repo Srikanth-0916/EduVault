@@ -88,9 +88,7 @@ def calculate_capacity(
         SeatClassification.APPROVED_SUPERNUMERARY.value: 0,
     }
     for allocation in db.scalars(
-        select(IntakeAllocation).where(
-            IntakeAllocation.approval_snapshot_id == snapshot.id
-        )
+        select(IntakeAllocation).where(IntakeAllocation.approval_snapshot_id == snapshot.id)
     ).all():
         allocations[allocation.seat_classification] = allocation.approved_count
 

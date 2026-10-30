@@ -1,6 +1,8 @@
 # APAAR-SDMV Prototype Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
+
+> **Status: complete (2026-10-31).** All five delivery phases are implemented. Final local verification: 119 API tests, 19 web unit tests, Ruff/TypeScript/ESLint/Next production build clean, 4 Chromium browser flows green, 10,000-row benchmark under target, and a Docker/PostgreSQL smoke run through upload → review → report export → public verification → revocation. Evidence: `docs/evidence/`.
 
 **Goal:** Build a working, demo-ready APAAR student enrolment governance and controlled-verification platform covering the PRD's MVP acceptance criteria.
 
@@ -73,7 +75,7 @@ Deliverable: a running API + web shell where seeded users sign in, see role-appr
 - Produces: `AppError(status_code, code, message, details=None)` and handler returning `{error:{code,message,details},traceId}`.
 - Produces: root scripts `make dev`, `make test`, `make seed`, `make build`.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```python
 def test_health_returns_ok(client):
@@ -91,21 +93,21 @@ def test_all_core_tables_create(db):
     assert expected <= set(inspector.get_table_names())
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd apps/api && uv run pytest tests/test_health.py tests/test_models.py -v`  
 Expected: FAIL (no app/models).
 
-- [ ] **Step 3: Implement foundation and models**
+- [x] **Step 3: Implement foundation and models**
 
 Use SQLAlchemy 2 `Mapped`/`mapped_column`, UUID string PKs, UTC timestamps. Use `SAEnum(..., native_enum=False, values_callable=...)` or `String` with Python enums. `create_all` on startup only outside tests; tests create/drop per test. Add `GET /api/v1/health`, request trace ID, CORS from settings, and baseline security headers. Create Dockerfiles and compose services `db`, `api`, `web`; Postgres 16; web depends on API. CI installs uv + Node 22, runs API tests with SQLite and `npm ci && npm run build` in `apps/web`.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd apps/api && uv run pytest tests/test_health.py tests/test_models.py -v`; `cd apps/web && npm ci && npm run build`  
 Expected: PASS; Next.js production build completes.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -132,7 +134,7 @@ git commit -m "feat: scaffold APAAR-SDMV monorepo and data model"
 - Produces: seed accounts and organizations from design §4; command `uv run python -m app.seed --reset`.
 - Produces: factories `make_user(role, institution=None)`, `auth_headers(client, email)`.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```python
 def test_login_and_me(client, seeded):
@@ -159,21 +161,21 @@ def test_operator_cannot_list_institution_users(client, seeded):
     assert client.get("/api/v1/institutions/me/users", headers=headers).status_code == 403
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd apps/api && uv run pytest tests/test_auth.py tests/test_tenant_scope.py -v`  
 Expected: FAIL (no routes/deps).
 
-- [ ] **Step 3: Implement auth, RBAC, audit, seed**
+- [x] **Step 3: Implement auth, RBAC, audit, seed**
 
 Argon2 via `pwdlib[argon2]`; JWT HS256 30 min with `sub`, `roles`, `institutionId`, `jti`; active membership lookup. `require_roles` returns a dependency that checks any membership role. Login audits success/failure with email and IP but never password. Seed 3 institutions, campuses, programmes, approvals/intake for 2025-26 and 2026-27, and users from design §4. Use deterministic IDs (`inst_ait`, `prog_ait_cse`, etc.) so later demo data is stable.
 
-- [ ] **Step 4: Run tests and seed smoke**
+- [x] **Step 4: Run tests and seed smoke**
 
 Run: `cd apps/api && uv run pytest -v`; `uv run python -m app.seed --reset`; `uv run python -c "from app.seed import seed; seed(reset=True)"`  
 Expected: PASS; seed prints counts.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -200,7 +202,7 @@ git commit -m "feat: add authentication, RBAC, tenant scope, audit and seed user
 - Produces: design tokens in CSS: ink `#0B1F33`, canvas `#F5F7FA`, surface `#FFFFFF`, primary teal `#0F766E`, accent amber `#B45309`, danger `#B42318`, border `#DDE3EA`; Sora display + Public Sans body via `next/font`.
 - Produces: `/login` split layout with 10 demo account chips that fill the form; `/` redirects by role (institution → `/institution`, AICTE roles → `/aicte`, student → `/student`, verifier → `/verifier`).
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```tsx
 // src/lib/__tests__/nav.test.ts
@@ -214,21 +216,21 @@ it("institution nav excludes AICTE audit", () => {
 
 Add `vitest` + `@testing-library/react` config and run `npm run test -- --run`.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd apps/web && npm run test -- --run`  
 Expected: FAIL (no nav module).
 
-- [ ] **Step 3: Implement design system, auth, and shell**
+- [x] **Step 3: Implement design system, auth, and shell**
 
 Use Tailwind 4 `@theme` tokens. Build accessible primitives (Radix Dialog/Tabs/Tooltip; native select/input). Sidebar dark ink with teal active indicator, demo ribbon above content, topbar with notification bell placeholder and user menu. Placeholder portal pages should read “Module arriving in Phase 2” but render with real shell. Ensure mobile drawer keyboard accessible. Add security headers in `next.config.ts` (`X-Frame-Options`, `Referrer-Policy`, `X-Content-Type-Options`, `Permissions-Policy`). Persist auth and redirect unauthenticated users to `/login`. Do not use a single “Verified” badge anywhere.
 
-- [ ] **Step 4: Verify build and typecheck**
+- [x] **Step 4: Verify build and typecheck**
 
 Run: `cd apps/web && npm run test -- --run && npm run typecheck && npm run build`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit and push Phase 1**
+- [x] **Step 5: Commit and push Phase 1**
 
 ```bash
 git add -A
@@ -266,7 +268,7 @@ Deliverable: AICTE master data and approved intake are real; institutions can ad
   - `POST /programmes/{id}/intake-snapshots`, `GET /intake?programmeId=&academicYear=`, `PATCH /intake-allocations/{id}`
 - Produces: seeded 3 institutions, 5 campuses, 8 programmes, 2025-26 + 2026-27 intake snapshots with regular/supernumerary allocations, ~90 enrollments across institutions (`is_current=true`, version 1 snapshots), and stable demo identities.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```python
 def test_masking_and_encryption_roundtrip(db):
@@ -292,21 +294,21 @@ def test_capacity_supernumerary_separate(client, seeded, reviewer_headers):
     assert data["allocations"]["APPROVED_SUPERNUMERARY"] >= 1
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd apps/api && uv run pytest tests/test_master_data.py tests/test_apaar.py tests/test_capacity.py -v`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement master data, APAAR service, adapter, capacity, seed**
+- [x] **Step 3: Implement master data, APAAR service, adapter, capacity, seed**
 
 Use `cryptography.fernet.Fernet` with a dev key derived from settings; HMAC-SHA256 lookup. Institution users may only read their institution; AICTE supervisor/system admin may create master data; intake allocations are immutable to institutions. `POST /programmes/{id}/intake-snapshots` creates a new version and supersedes older snapshots with a reason + audit. Seed synthetic names and IDs; do not use real institutions. Seed enrollments directly via models plus `EnrollmentVersion` snapshots; include at least: one same-institution duplicate, one cross-institution overlapping pair, one non-overlapping transfer pair, one malformed/missing APAAR, one supernumerary-with-reference, one supernumerary-without-reference, and one over-intake programme. Keep raw APAAR values in seed constants but never print them.
 
-- [ ] **Step 4: Run tests and seed**
+- [x] **Step 4: Run tests and seed**
 
 Run: `cd apps/api && uv run pytest -v`; `uv run python -m app.seed --reset`  
 Expected: PASS; seed count summary; DB contains ~90 current enrollments.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -340,7 +342,7 @@ git commit -m "feat: add master data, APAAR protections, mock adapter and demo s
   - `GET /duplicate-cases?status=&severity=`; `GET /{id}`; `POST /{id}/resolve`; `POST /{id}/request-information`
 - Produces: notification fan-out (in-app rows) on validation failure, submission, return, acceptance, rejection, case resolution; mock email delivery rows with status `MOCKED`.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```python
 def test_valid_csv_reaches_ready_for_attestation(client, operator_headers, sample_csv):
@@ -377,21 +379,21 @@ def test_nodal_attest_submit_and_reviewer_accept(client, nodal_headers, reviewer
 
 Also test: duplicate same institution creates BR-004 high case; cross-institution non-overlap creates case with `TRANSFER_CONTEXT`; capacity excess BR-008; supernumerary without ref BR-009; tenant isolation for batch/enrollment/case; total rows >10,000 rejected; file >5 MB rejected; no raw APAAR in finding/audit JSON; resubmission after return doesn't double count.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd apps/api && uv run pytest tests/test_enrollments.py tests/test_batch_upload.py tests/test_validation.py tests/test_batch_workflow.py tests/test_duplicates.py -v`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement pipeline**
+- [x] **Step 3: Implement pipeline**
 
 Upload stores bytes privately and computes SHA-256 before parsing. Rows persist `raw_data`, parsed values, row status. Validation bulk-prefetches programme/campus maps, existing identities/enrollments, and capacity counts; no per-row queries. Findings use rule IDs/codes: `APAAR_MISSING` (BR-001), `APAAR_INVALID_FORMAT` (BR-002), `DUPLICATE_IN_BATCH` (BR-003), `DUPLICATE_SAME_INSTITUTION` (BR-004), `POSSIBLE_CROSS_INSTITUTION_OVERLAP` (BR-005), `INVALID_DATE_ORDER` (BR-006), `UNMAPPED_PROGRAMME` (BR-007), `POSSIBLE_INTAKE_EXCESS` (BR-008), `SUPERNUMERARY_REFERENCE_REQUIRED` (BR-009), `ATTRIBUTE_POLICY_REVIEW` (BR-010). Commit only error-free or warning rows; all-or-nothing per batch for blocking errors (institution corrects and revalidates). Attestation requires nodal role, `declaration=true`, no blocking errors. Submission requires attestation and no errors; sets `SUBMITTED` then `UNDER_AICTE_REVIEW`, creates receipt payload (batch id, checksum, counts, actor, timestamp, signature HMAC). Decision endpoint applies legal transitions only; `RETURN` sets rows editable and notifies institution; resubmission increments batch version and replaces current enrollment versions without duplicate counts. All state changes audit.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `cd apps/api && uv run pytest -v`  
 Expected: PASS (all backend suites).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -422,7 +424,7 @@ git commit -m "feat: add enrollment ingestion, validation, duplicate cases and b
 - Produces: new-student form validated with zod/react-hook-form; fields per CSV contract; a “Synthetic data” notice; success redirect to detail.
 - Produces: programmes page with campus filters, approved regular/supernumerary columns, reported counts, capacity state; read-only banner for institution users.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```tsx
 it("does not label a format-valid identity as verified", () => {
@@ -432,21 +434,21 @@ it("does not label a format-valid identity as verified", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd apps/web && npm run test -- --run src/components/institution/__tests__/identity-status.test.tsx`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement institution surfaces**
+- [x] **Step 3: Implement institution surfaces**
 
 Dashboard: 6 KPI cards (approved intake, reported enrollment, active, APAAR gaps, unresolved cases, pending batches), capacity-by-programme table, identity-status donut, enrollment-status bars, recent batch timeline, actionable alert list. Programmes/intake read-only. Student list/detail/new. No entity may reveal raw APAAR; show “Last 4 only” helper text. Use skeletons, empty states, error alerts. All action buttons respect role (operator/admin can create; nodal sees batch actions later). Include page-level academic-year selector persisted in URL query.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `cd apps/web && npm run test -- --run && npm run typecheck && npm run build`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -473,7 +475,7 @@ git commit -m "feat: add institution dashboard, programme and student experience
 - Produces: cases list with severity/status filters and institution scope; detail evidence cards, date-overlap visualization, resolve-as-transfer/concurrent/data-error dialog, request-information message.
 - Produces: team page listing users, roles, status; invite dialog for institution admin with returned one-time demo password and copy button.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```tsx
 it("disables attestation until the declaration is accepted", () => {
@@ -483,21 +485,21 @@ it("disables attestation until the declaration is accepted", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd apps/web && npm run test -- --run src/components/batches/__tests__/validation-summary.test.tsx`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement batch and case surfaces**
+- [x] **Step 3: Implement batch and case surfaces**
 
 Wizard preserves batch id between steps; upload accepts `.csv` only, enforces 5 MB client-side, shows progress; row errors are actionable and never hidden behind a single toast. Attestation only visible to nodal officer; submit disabled until attested and zero blocking errors. For returned batches, editing a row calls PATCH then revalidate; resubmit creates a new batch version and preserves timeline. Show mock APAAR notices. Case resolution reasons are recorded and displayed. All student-level export actions show a confirmation that the action is audited. Add team management.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `cd apps/web && npm run test -- --run && npm run typecheck && npm run build`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit and push Phase 2**
+- [x] **Step 5: Commit and push Phase 2**
 
 ```bash
 git add -A
@@ -534,7 +536,7 @@ Deliverable: AICTE reviewers can work a queue, decide batches, resolve cases, an
 - Produces endpoints for reviewer/admin user directory: `GET /admin/users`, `PATCH /admin/users/{id}/status`, `POST /admin/users/{id}/roles` (system admin only; audited; cannot approve regulatory records).
 - Produces: seeded historical batches (accepted, returned, under review), open/resolved cases, notifications, and audit events for a rich national dashboard.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```python
 def test_reviewer_queue_requires_aicte_role(client, operator_headers, reviewer_headers):
@@ -558,21 +560,21 @@ def test_institution_export_scoped_and_masked(client, operator_headers):
 
 Also test audit filters and 403, notification read state scoped to recipient, illegal decision transition 409, report suppression threshold (<5 groups), CSV formula neutralization.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd apps/api && uv run pytest tests/test_review.py tests/test_dashboards.py tests/test_reports.py tests/test_notifications_audit.py -v`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement review/analytics/ops services**
+- [x] **Step 3: Implement review/analytics/ops services**
 
 Dashboard aggregates use SQL `group_by`; no per-row Python loops over the full dataset. National KPIs: institutions reporting, total current enrollments, submissions by status, possible excess programmes, missing/malformed APAAR, open cases, review turnaround. Institution KPIs: approved/reported, active, identity gaps, unresolved cases, pending batches, programme capacity rows, identifier/status breakdowns, recent batches. Reports return only fields allowed by role; `AICTE_ANALYST` always aggregate and never names/APAAR; institutions only own data. Suppress aggregate rows with `count < 5` for analyst (mark `suppressed: true`). CSV exports escape `= + - @` leading cells. Every export writes a `ReportExport` + audit event. Notifications are fan-out by role/institution with mock email delivery. Audit reads are read-only and cannot expose metadata keys `apaar`, `password`, `token`.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `cd apps/api && uv run pytest -v`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -596,7 +598,7 @@ git commit -m "feat: add AICTE review, dashboards, reports, notifications and au
 - Produces: batch review page with summary header, validation findings by severity, row-level evidence (masked), capacity evidence, duplicate links, decision panel with `ACCEPT`, `RETURN_FOR_CORRECTION`, `REJECT`, reason code, free-text reason, confirmation; illegal actions disabled with explanation.
 - Produces: reviewer sees “Decision recorded by … at …” and timeline; no edit of student fields from AICTE side.
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 ```tsx
 it("requires a reason before returning a batch", () => {
@@ -606,21 +608,21 @@ it("requires a reason before returning a batch", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd apps/web && npm run test -- --run src/components/aicte/__tests__/decision-panel.test.tsx`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement AICTE dashboard/review UI**
+- [x] **Step 3: Implement AICTE dashboard/review UI**
 
 Data-dense but legible layout. Charts use teal/amber/red semantics; legends and accessible labels. Review decisions require reason and show consequence copy (“Institution will be notified; records remain non-accepted until resubmission”). Summaries distinguish `APAAR format valid` from `External check: mock confirmed`. No bulk accept in MVP. Include empty/loading/error states and responsive tables.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `cd apps/web && npm run test -- --run && npm run typecheck && npm run build`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -650,7 +652,7 @@ git commit -m "feat: add AICTE national dashboard and review workspace"
 - Produces: audit page filters (action, actor, resource, date), table, detail drawer with masked metadata; no edit controls.
 - Produces: notifications page and topbar unread count; mark one/all read; role-scoped.
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 ```tsx
 it("shows supernumerary separately from regular intake", () => {
@@ -661,21 +663,21 @@ it("shows supernumerary separately from regular intake", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd apps/web && npm run test -- --run src/components/aicte/__tests__/intake-form.test.tsx`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement AICTE admin/reporting surfaces**
+- [x] **Step 3: Implement AICTE admin/reporting surfaces**
 
 Master-data mutations only for `AICTE_SUPERVISOR` and `SYSTEM_ADMIN`; reviewer sees read-only. Intake edit creates a new snapshot version, never mutates history. Reports respect role: analyst sees aggregate-only and suppression; reviewer/supervisor can drill to institution aggregates but not student rows. Audit page read-only for `AUDITOR`/supervisor/system admin. Notifications use relative timestamps and safe copy without student identifiers. Ensure dialogs are keyboard accessible and forms validate inline.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `cd apps/web && npm run test -- --run && npm run typecheck && npm run build`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit and push Phase 3**
+- [x] **Step 5: Commit and push Phase 3**
 
 ```bash
 git add -A
@@ -712,7 +714,7 @@ Deliverable: A student can authorize a purpose-bound share; a verifier sees only
   - `GET /students/me` (student) → masked identity, own enrollments, active/recent requests/consents.
 - Produces seeded active, expired, and revoked verification requests for `student@demo-ait.edu`, plus receipts/attempts.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```python
 def test_student_authorize_and_public_verify(client, student_headers):
@@ -739,21 +741,21 @@ def test_verification_attempts_audited(client, student_headers, auditor_headers)
 
 Also test: unauthenticated cannot create; non-student cannot authorize; claims allow-list rejects `STUDENT_NAME`; rate limit returns 429 after N requests; receipt signature verifies with test key.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd apps/api && uv run pytest tests/test_verification.py tests/test_public_verify.py -v`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement verification service**
+- [x] **Step 3: Implement verification service**
 
 Token: `secrets.token_urlsafe(32)`; store SHA-256 hex; return raw token once. Public route must not require auth but must rate limit by IP (10/min auth, 30/min verify). Claims are built only from the student's current accepted/submitted enrollment; `RECORD_ACCEPTANCE` reflects batch status; `APAAR_EXTERNAL_STATUS` includes `mock:true` when applicable. Receipt canonical JSON: `{requestId, claimsHash, issuedAt, expiresAt, subjectRef, keyId}`; signature = HMAC-SHA256 with settings key; expose algorithm/keyId only. Denials: generic message, 410; log attempt with token hash prefix, IP, UA, reason, but never raw token. Expiry checked server-side. Revocation updates consent and request; any later public resolve denies. Student `GET /students/me` returns only own records. Seed active/expired/revoked examples.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `cd apps/api && uv run pytest -v`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -781,7 +783,7 @@ git commit -m "feat: add consent-scoped verification, signed receipts and public
 - Produces: public `/verify/[token]` page fetching public API without auth: prominent claim-by-claim source/status labels, demo/mock banner, expiry, signed receipt JSON download, generic denied state for 410; print-friendly CSS.
 - Produces: verifier portal shell with a “paste verification reference” box (extracts token from URL) and explanation that verifiers get no search or bulk lookup.
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 ```tsx
 it("requires explicit claim selection before authorizing", () => {
@@ -792,21 +794,21 @@ it("requires explicit claim selection before authorizing", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd apps/web && npm run test -- --run src/components/student/__tests__/share-wizard.test.tsx`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement student and verifier surfaces**
+- [x] **Step 3: Implement student and verifier surfaces**
 
 Route guard must allow `/verify/*` unauthenticated; do not wrap public page in portal shell. QR generated locally with `qrcode.react` from the full verify URL; never include claims in the URL. Denied page must not reveal whether a record existed. Claim cards show `Institution-submitted`, `AICTE accepted`, `APAAR format check`, `Mock external check` as separate facts. Share wizard explains what each claim reveals. Revocation confirmation states future access stops. Print stylesheet hides navigation and demo controls. Ensure mobile layout at 390 px.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `cd apps/web && npm run test -- --run && npm run typecheck && npm run build`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit and push Phase 4**
+- [x] **Step 5: Commit and push Phase 4**
 
 ```bash
 git add -A
@@ -840,7 +842,7 @@ Deliverable: security/perf/a11y checks, browser evidence, demo script, complete 
 - Produces: Playwright suites for login → institution dashboard; upload sample → validate → attest → submit; reviewer accept; student authorize → public verify → revoke; expired token denial. Screenshots saved to `docs/evidence/`.
 - Produces: accessibility notes and fixes: keyboard nav, focus traps, labels, contrast, reduced motion, table captions.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```python
 def test_upload_rejects_oversize_and_row_limit(client, operator_headers):
@@ -858,21 +860,21 @@ def test_public_verify_rate_limit(client):
     assert r.status_code == 429
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd apps/api && uv run pytest tests/test_security_hardening.py tests/test_upload_limits.py tests/test_performance.py -v`  
 Expected: FAIL.
 
-- [ ] **Step 3: Implement hardening**
+- [x] **Step 3: Implement hardening**
 
 Use a small in-process sliding-window limiter keyed by IP+route for the prototype; note Redis-backed production. Add middleware order so trace ID and security headers are present on errors. Validate secrets at startup when `ENV=production`. Redact logs and exception strings; never log request bodies for auth/verification/upload. Optimize validation with bulk maps; add indexes on `(institution_id, academic_year)`, `(batch_id, source_row_number)`, `apaar_lookup_token`, `(programme_id, academic_year)`, `(recipient_user_id, read_at)`. For Playwright, use a seeded local database and start servers via config; skip gracefully if browsers unavailable in CI, but run locally and save screenshots. Add `aria-label`, captions, focus management where audit finds gaps.
 
-- [ ] **Step 4: Run tests, benchmark, e2e**
+- [x] **Step 4: Run tests, benchmark, e2e**
 
 Run: `cd apps/api && uv run pytest -v`; `uv run python scripts/benchmark_validation.py` (or `uv run python ../../scripts/benchmark_validation.py` from API); `cd apps/web && npm run test -- --run && npm run typecheck && npm run build && npx playwright test`  
 Expected: PASS; benchmark prints rows and duration under target; e2e screenshots captured.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -896,7 +898,7 @@ git commit -m "test: harden security, uploads, performance and browser flows"
 - Produces: Docker smoke evidence: `docker compose up -d --build`, health checks, seed, login, upload/validate, public verification curl, `docker compose down`; screenshots or command transcript in docs.
 - Produces: final whole-branch review findings fixed; deferred minors documented.
 
-- [ ] **Step 1: Write failing acceptance tests**
+- [x] **Step 1: Write failing acceptance tests**
 
 ```python
 def test_mvp_acceptance_smoke(client, seeded):
@@ -905,16 +907,16 @@ def test_mvp_acceptance_smoke(client, seeded):
     ...
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd apps/api && uv run pytest tests/test_acceptance.py -v`  
 Expected: FAIL until missing wiring/docs scenario is complete.
 
-- [ ] **Step 3: Complete demo/docs/Docker and fix gaps**
+- [x] **Step 3: Complete demo/docs/Docker and fix gaps**
 
 Ensure `.env.example` contains every var with safe dev values and production warnings. Compose uses healthchecks and starts db → api → web; API seed runs idempotently. Add `make demo` (seed + up) and `make reset`. Verify all 10 accounts can sign in. Generate and check demo CSV downloads. Add screenshots for login, institution dashboard, batch results, AICTE dashboard, review, verification result, denied token. Run `docker compose config` and a full smoke. Update README feature matrix with exact shipped statuses; do not overclaim P1/P2 items.
 
-- [ ] **Step 4: Full verification**
+- [x] **Step 4: Full verification**
 
 Run:
 ```bash
@@ -924,7 +926,7 @@ cd ../.. && docker compose build && docker compose up -d && ./scripts/smoke.sh &
 ```
 Expected: all green; smoke prints PASS for health/auth/upload/verify.
 
-- [ ] **Step 5: Commit and push Phase 5**
+- [x] **Step 5: Commit and push Phase 5**
 
 ```bash
 git add -A
@@ -988,8 +990,8 @@ Plan is intentionally longer than a small feature plan because it covers a multi
 
 ## Phase push checklist
 
-- [ ] Phase 1 pushed after Task 3
-- [ ] Phase 2 pushed after Task 7
-- [ ] Phase 3 pushed after Task 10
-- [ ] Phase 4 pushed after Task 12
-- [ ] Phase 5 pushed after Task 14
+- [x] Phase 1 pushed after Task 3
+- [x] Phase 2 pushed after Task 7
+- [x] Phase 3 pushed after Task 10
+- [x] Phase 4 pushed after Task 12
+- [x] Phase 5 pushed after Task 14

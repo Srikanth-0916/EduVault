@@ -16,13 +16,22 @@ Services:
 | Service | URL | Notes |
 |---|---|---|
 | Web | http://localhost:3000 | Next.js production build |
-| API | http://localhost:8000 | FastAPI; docs at `/docs` |
+| API | http://localhost:8000 | FastAPI; Swagger at `/api/v1/docs` |
 | PostgreSQL | localhost:5432 | user/password/db `apaar`/`apaar`/`apaar_sdmv` |
 
-Seed demo data:
+The API seeds the deterministic synthetic dataset automatically on first boot
+when `ENV=development` and `AUTO_SEED=true` (the compose default). Seeding is
+idempotent. To deliberately rebuild the dataset:
 
 ```bash
 docker compose exec api python -m app.seed --reset
+```
+
+Run the end-to-end smoke test after the stack is healthy:
+
+```bash
+./scripts/smoke.sh
+# or: make smoke
 ```
 
 Stop:
@@ -57,8 +66,20 @@ Tests/build:
 
 ```bash
 cd apps/api && uv run ruff check . && uv run pytest -v
-cd apps/web && npm run test -- --run && npm run typecheck && npm run build
+cd apps/web && npm run test -- --run && npm run typecheck && npm run lint && npm run build
 ```
+
+Browser and performance evidence:
+
+```bash
+cd apps/web && npx playwright install chromium   # first run only
+cd apps/web && npm run e2e                        # API+web auto-start; saves screenshots
+cd apps/api && uv run python ../../scripts/benchmark_validation.py
+```
+
+The Playwright suite uses a fresh SQLite database (`apps/api/var/e2e.db`) and the
+synthetic seed. It writes screenshots to `docs/evidence/`. The benchmark uses a
+throwaway SQLite database and does not touch a developer database.
 
 ## Configuration
 
@@ -71,6 +92,8 @@ cd apps/web && npm run test -- --run && npm run typecheck && npm run build
 | `APAAR_LOOKUP_KEY` | yes | HMAC key for exact-match lookup tokens |
 | `RECEIPT_SIGNING_KEY` | yes | HMAC key for verification receipts |
 | `CORS_ORIGINS` | yes | Comma-separated allowed browser origins |
+| `WEB_BASE_URL` | yes | Public web origin used in student verification links |
+| `AUTO_SEED` | no | Development-only synthetic seed at startup (default `true`) |
 | `NEXT_PUBLIC_API_BASE_URL` | yes (web build) | Public API base URL |
 | `WEB_PORT` | no | Published web port (default 3000) |
 
@@ -116,6 +139,12 @@ Production additions:
 - OpenTelemetry traces/metrics, log aggregation, alerting on auth failures, cross-tenant attempts, bulk exports, public verification denials, queue backlog, provider failures.
 - Dashboards for latency/error rate, validation throughput, review SLA, and data quality.
 - Do not log request bodies for auth, upload, or verification routes; redact identifiers.
+- The prototype installs a log filter that scrubs 12-digit APAAR-shaped
+  sequences, bearer tokens and sensitive key/value pairs. Keep this as
+  defence-in-depth, not as the only control.
+- Security headers are attached to all API responses; the `Server` banner is
+  removed. HSTS is added only when `ENV=production` and should also be set at
+  the TLS proxy.
 
 ## Scaling
 
@@ -123,7 +152,13 @@ Production additions:
 - Move validation/report/notification work to workers (Celery/RQ) with Redis and dead-letter queues.
 - Use PostgreSQL read replicas for dashboards/reports if needed; pre-aggregate where scale demands.
 - Rate limiting must move to Redis/WAF for multi-worker correctness.
-- 10,000-row ingestion target: keep per-row work O(1) with prefetched maps; benchmark before go-live.
+- Prototype limits are login `10/min/IP` and public verification `30/min/IP`,
+  returning `429 RATE_LIMITED` with `Retry-After`. The limiter is in-process and
+  resets on restart.
+- 10,000-row ingestion target: keep per-row work O(1) with prefetched maps;
+  benchmark before go-live. The local synthetic benchmark completed upload +
+  validation in ~12.3 seconds on SQLite (2026-10-31); this is prototype
+  throughput, not a production SLA.
 
 ## Security operations
 

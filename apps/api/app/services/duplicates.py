@@ -62,12 +62,8 @@ def create_case_for_match(
         raise validation_error("Unknown duplicate match type")
     if severity not in {item.value for item in Severity}:
         raise validation_error("Unknown case severity")
-    group_id = _match_group_id(
-        match_type, primary_enrollment_id, related_enrollment_id, match_key
-    )
-    existing = db.scalar(
-        select(DuplicateCase).where(DuplicateCase.match_group_id == group_id)
-    )
+    group_id = _match_group_id(match_type, primary_enrollment_id, related_enrollment_id, match_key)
+    existing = db.scalar(select(DuplicateCase).where(DuplicateCase.match_group_id == group_id))
     if existing is not None:
         existing.evidence = evidence
         existing.severity = severity
@@ -113,9 +109,7 @@ def resolve_case(
     return case
 
 
-def request_case_information(
-    db: Session, case: DuplicateCase, *, reason: str
-) -> DuplicateCase:
+def request_case_information(db: Session, case: DuplicateCase, *, reason: str) -> DuplicateCase:
     if case.status == DuplicateCaseStatus.RESOLVED.value:
         raise validation_error("A resolved case cannot be reopened for information")
     case.status = DuplicateCaseStatus.IN_REVIEW.value

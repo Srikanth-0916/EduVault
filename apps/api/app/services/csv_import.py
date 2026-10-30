@@ -128,9 +128,7 @@ def parse_csv(content: bytes) -> ParsedCsv:
         result.rows.append({"row_number": row_number, "data": data})
 
     if not result.rows and not result.errors:
-        result.errors.append(
-            {"code": "NO_DATA_ROWS", "message": "The CSV contains no data rows"}
-        )
+        result.errors.append({"code": "NO_DATA_ROWS", "message": "The CSV contains no data rows"})
     return result
 
 
@@ -141,18 +139,14 @@ def prepare_row(values: dict[str, str]) -> dict[str, Any]:
     encryption). Only the ciphertext, masked fragment and last four digits are
     stored in the JSON column.
     """
-    safe: dict[str, Any] = {
-        header: values.get(header, "") for header in ALL_HEADERS
-    }
+    safe: dict[str, Any] = {header: values.get(header, "") for header in ALL_HEADERS}
     raw = normalize_apaar(values.get("apaar_id"))
     state = validate_apaar_format(raw)
     safe.pop("apaar_id", None)
     safe["apaarStatus"] = state["status"]
     safe["apaarMasked"] = mask_apaar(raw)
     safe["apaarLast4"] = (
-        raw[-4:]
-        if raw and len(raw) >= 4 and state["status"] == "FORMAT_VALID"
-        else ""
+        raw[-4:] if raw and len(raw) >= 4 and state["status"] == "FORMAT_VALID" else ""
     )
     if state["status"] == "FORMAT_VALID" and raw is not None:
         safe["apaarIdCiphertext"] = encrypt_apaar(raw)

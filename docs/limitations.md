@@ -14,7 +14,7 @@ This repository is a **hackathon/demo prototype**. It is not an AICTE production
 - It does **not** implement production MFA/OIDC, managed KMS, database encryption at rest, WAF, SIEM, backup/DR, or penetration testing.
 - It does **not** implement a formal privacy notice, data-subject request workflow, retention schedule, or guardian/minor flow.
 - It does **not** implement a production migration path; the prototype creates tables directly. A production build should use a migration tool.
-- It does **not** use a message queue; validation and notifications run synchronously. The 10,000-row benchmark is a target, not a production SLA.
+- It does **not** use a message queue; validation and notifications run synchronously. A local 10,000-row synthetic benchmark completed in ~12.3 seconds on SQLite, but this is not a production SLA or a PostgreSQL capacity claim.
 
 ## Environment and data limitations
 
@@ -24,7 +24,11 @@ This repository is a **hackathon/demo prototype**. It is not an AICTE production
 - The demo accounts use a shared password and are not suitable for any real deployment.
 - The browser stores the demo JWT in local storage; production should use OIDC with secure, httpOnly session handling.
 - The in-process rate limiter is per worker and resets on restart.
-- SQLite is used in tests; runtime uses PostgreSQL. Some database-specific behavior (row locking, partial indexes) may differ.
+- Development auto-seeding is enabled by default in Docker/local runs. It must be
+  disabled for any shared environment; production never auto-seeds.
+- SQLite is used in tests and the Playwright/benchmark harness; runtime uses PostgreSQL. Some database-specific behavior (row locking, partial indexes) may differ.
+- Browser evidence is produced against `next dev` and the Playwright-managed API. It is a smoke check, not a cross-browser or assistive-technology audit.
+- Uploaded files are stored on a local private volume in the prototype; there is no malware scanner.
 - English only in this release.
 - CSV is the only export format; XLSX/PDF are not implemented. Small-group suppression is applied for analyst aggregate exports, but policy thresholds require approval.
 - QR codes are generated client-side from the opaque verification URL; certificate issuance and printing workflows are out of scope.

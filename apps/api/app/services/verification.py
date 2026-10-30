@@ -10,7 +10,7 @@ from typing import Any
 
 from app.audit import record_audit
 from app.errors import AppError, conflict, forbidden, not_found
-from app.models.base import utc_now
+from app.models.base import as_utc, utc_now
 from app.models.enrollment import StudentEnrollment
 from app.models.enums import (
     AttemptDenialReason,
@@ -167,7 +167,7 @@ def authorize_request(
     if (
         request.status == VerificationRequestStatus.AUTHORIZED.value
         and request.expires_at
-        and request.expires_at > now
+        and as_utc(request.expires_at) > as_utc(now)
     ):
         token = None
     else:
@@ -203,7 +203,7 @@ def authorize_request(
     return AuthorizeResponse(
         request=_request_out(request),
         token=token,
-        verify_url=f"{base_url.rstrip('/')}/api/v1/public/verify/{token}",
+        verify_url=f"{base_url.rstrip('/')}/verify/{token}",
         expires_at=request.expires_at,
         receipt=_receipt_out(receipt),
     )
@@ -366,7 +366,7 @@ def resolve_public(
     denial: AttemptDenialReason | None = None
     if request.status == VerificationRequestStatus.REVOKED.value:
         denial = AttemptDenialReason.REVOKED
-    elif request.expires_at is None or request.expires_at <= now:
+    elif request.expires_at is None or as_utc(request.expires_at) <= as_utc(now):
         request.status = VerificationRequestStatus.EXPIRED.value
         denial = AttemptDenialReason.EXPIRED
     elif request.single_use and request.status in {

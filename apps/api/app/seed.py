@@ -78,14 +78,55 @@ def _membership(
 
 
 _FIRST_NAMES = [
-    "Aarav", "Ananya", "Bhavya", "Chirag", "Devika", "Eshan", "Farah", "Gaurav",
-    "Harini", "Ishaan", "Jaya", "Kabir", "Lakshmi", "Mihir", "Neha", "Omkar",
-    "Pooja", "Rohan", "Sanya", "Tanvi", "Uday", "Veda", "Yash", "Zoya",
+    "Aarav",
+    "Ananya",
+    "Bhavya",
+    "Chirag",
+    "Devika",
+    "Eshan",
+    "Farah",
+    "Gaurav",
+    "Harini",
+    "Ishaan",
+    "Jaya",
+    "Kabir",
+    "Lakshmi",
+    "Mihir",
+    "Neha",
+    "Omkar",
+    "Pooja",
+    "Rohan",
+    "Sanya",
+    "Tanvi",
+    "Uday",
+    "Veda",
+    "Yash",
+    "Zoya",
 ]
 _LAST_NAMES = [
-    "Agarwal", "Bhat", "Chandra", "Desai", "Ezhil", "Fernandes", "Ghosh",
-    "Hegde", "Iyer", "Jain", "Kapoor", "Lal", "Mehta", "Nair", "Oberoi",
-    "Patel", "Qureshi", "Rao", "Shah", "Tiwari", "Usman", "Verma", "Yadav",
+    "Agarwal",
+    "Bhat",
+    "Chandra",
+    "Desai",
+    "Ezhil",
+    "Fernandes",
+    "Ghosh",
+    "Hegde",
+    "Iyer",
+    "Jain",
+    "Kapoor",
+    "Lal",
+    "Mehta",
+    "Nair",
+    "Oberoi",
+    "Patel",
+    "Qureshi",
+    "Rao",
+    "Shah",
+    "Tiwari",
+    "Usman",
+    "Verma",
+    "Yadav",
     "Zachariah",
 ]
 
@@ -192,10 +233,7 @@ def _seed_enrollments(db: Session) -> dict[str, int]:
     rows[8]["oci"] = DeclaredStatus.YES.value
     rows[9]["foreign"] = DeclaredStatus.YES.value
 
-    programme_to_campus = {
-        key: CAMPUS_IDS[campus_key]
-        for key, campus_key, _, _, _ in schedule
-    }
+    programme_to_campus = {key: CAMPUS_IDS[campus_key] for key, campus_key, _, _, _ in schedule}
     programme_index: dict[str, int] = {}
     accepted_at = datetime(2026, 8, 1, tzinfo=UTC)
     transfer_accepted_at = datetime(2025, 9, 1, tzinfo=UTC)
@@ -209,9 +247,7 @@ def _seed_enrollments(db: Session) -> dict[str, int]:
             f"{row['programme_code']}{row['local_index']:03d}"
         )
         raw = str(row["raw_apaar"])
-        identity = upsert_student_identity(
-            db, raw or None, str(row["identity_status"])
-        )
+        identity = upsert_student_identity(db, raw or None, str(row["identity_status"]))
         identity.identifier_status = str(row["identity_status"])
         if raw and len(raw) == 12 and raw.isdigit():
             identity.apaar_last4 = raw[-4:]

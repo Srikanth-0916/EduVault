@@ -36,9 +36,9 @@ class EnrollmentCreate(CamelModel):
     enrollment_status: Literal[
         "PENDING", "ACTIVE", "WITHDRAWN", "TRANSFERRED", "COMPLETED", "CANCELLED", "UNDER_REVIEW"
     ] = "PENDING"
-    seat_classification: Literal[
-        "APPROVED_REGULAR", "APPROVED_SUPERNUMERARY", "OTHER"
-    ] = "APPROVED_REGULAR"
+    seat_classification: Literal["APPROVED_REGULAR", "APPROVED_SUPERNUMERARY", "OTHER"] = (
+        "APPROVED_REGULAR"
+    )
     admission_category: str | None = Field(default=None, max_length=64)
     nri_status: Literal["YES", "NO", "UNKNOWN"] = "UNKNOWN"
     oci_status: Literal["YES", "NO", "UNKNOWN"] = "UNKNOWN"

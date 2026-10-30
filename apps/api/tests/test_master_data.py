@@ -167,9 +167,7 @@ def test_master_data_create_flow_requires_national_roles(client, seeded) -> None
     assert revised.status_code == 201, revised.text
     assert revised.json()["version"] == 2
 
-    history = client.get(
-        f"/api/v1/programmes/{programme_id}/intake-snapshots", headers=supervisor
-    )
+    history = client.get(f"/api/v1/programmes/{programme_id}/intake-snapshots", headers=supervisor)
     assert history.status_code == 200
     statuses = {item["version"]: item["status"] for item in history.json()}
     assert statuses == {1: "SUPERSEDED", 2: "ACTIVE"}
@@ -196,9 +194,7 @@ def test_supernumerary_snapshot_requires_authorization_reference(client, seeded)
 
 def test_programme_list_is_forced_to_own_institution(client, seeded) -> None:
     headers = auth_headers(client, "operator@demo-ait.edu")
-    response = client.get(
-        "/api/v1/programmes?institutionId=inst_bie", headers=headers
-    )
+    response = client.get("/api/v1/programmes?institutionId=inst_bie", headers=headers)
     assert response.status_code == 200
     assert response.json()
     assert all(item["institutionId"] == "inst_ait" for item in response.json())

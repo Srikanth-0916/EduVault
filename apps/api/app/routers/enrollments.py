@@ -209,9 +209,7 @@ def list_enrollments(
             StudentEnrollment.student_identity_id == user.student_identity_id
         )
     elif user.institution_id:
-        statement = statement.where(
-            StudentEnrollment.institution_id == user.institution_id
-        )
+        statement = statement.where(StudentEnrollment.institution_id == user.institution_id)
         count_statement = count_statement.where(
             StudentEnrollment.institution_id == user.institution_id
         )
@@ -220,18 +218,12 @@ def list_enrollments(
 
     if academic_year:
         statement = statement.where(StudentEnrollment.academic_year == academic_year)
-        count_statement = count_statement.where(
-            StudentEnrollment.academic_year == academic_year
-        )
+        count_statement = count_statement.where(StudentEnrollment.academic_year == academic_year)
     if programme_id:
         statement = statement.where(StudentEnrollment.programme_id == programme_id)
-        count_statement = count_statement.where(
-            StudentEnrollment.programme_id == programme_id
-        )
+        count_statement = count_statement.where(StudentEnrollment.programme_id == programme_id)
     if enrollment_status:
-        statement = statement.where(
-            StudentEnrollment.enrollment_status == enrollment_status
-        )
+        statement = statement.where(StudentEnrollment.enrollment_status == enrollment_status)
         count_statement = count_statement.where(
             StudentEnrollment.enrollment_status == enrollment_status
         )
@@ -278,9 +270,7 @@ def create_enrollment_route(
     _assert_institution_write(user, user.institution_id)
     data = payload.model_dump()
     data["raw_apaar"] = data.pop("apaar_id")
-    enrollment = create_enrollment(
-        db, actor=user, institution_id=user.institution_id, data=data
-    )
+    enrollment = create_enrollment(db, actor=user, institution_id=user.institution_id, data=data)
     record_audit(
         db,
         actor=user,
@@ -320,9 +310,7 @@ def update_enrollment(
     reason = str(data.pop("reason"))
     data["raw_apaar"] = data.pop("apaar_id", None)
     data = {key: value for key, value in data.items() if value is not None}
-    updated = supersede_enrollment(
-        db, enrollment, actor=user, data=data, reason=reason
-    )
+    updated = supersede_enrollment(db, enrollment, actor=user, data=data, reason=reason)
     record_audit(
         db,
         actor=user,
@@ -348,8 +336,7 @@ def verify_enrollment_identity(
     enrollment = _get_enrollment(db, enrollment_id)
     roles = set(user.roles)
     if not (
-        (user.institution_id == enrollment.institution_id
-        and roles & set(INSTITUTION_STAFF_ROLES))
+        (user.institution_id == enrollment.institution_id and roles & set(INSTITUTION_STAFF_ROLES))
         or roles & {"AICTE_REVIEWER", "AICTE_SUPERVISOR", "SYSTEM_ADMIN"}
     ):
         raise forbidden()

@@ -71,9 +71,7 @@ def programme_out(
 ) -> ProgrammeOut:
     campus = db.get(Campus, programme.campus_id)
     institution = db.get(Institution, programme.institution_id)
-    capacity = (
-        calculate_capacity(db, programme.id, academic_year) if include_capacity else None
-    )
+    capacity = calculate_capacity(db, programme.id, academic_year) if include_capacity else None
     evidence = capacity.evidence if capacity else {}
     return ProgrammeOut(
         id=programme.id,
@@ -100,9 +98,7 @@ def institution_detail(
 ) -> InstitutionDetail:
     summary = institution_out(db, institution)
     campuses = db.scalars(
-        select(Campus)
-        .where(Campus.institution_id == institution.id)
-        .order_by(Campus.name.asc())
+        select(Campus).where(Campus.institution_id == institution.id).order_by(Campus.name.asc())
     ).all()
     programmes = db.scalars(
         select(Programme)
@@ -112,7 +108,5 @@ def institution_detail(
     return InstitutionDetail(
         **summary.model_dump(),
         campuses=[campus_out(campus) for campus in campuses],
-        programmes=[
-            programme_out(db, programme, academic_year) for programme in programmes
-        ],
+        programmes=[programme_out(db, programme, academic_year) for programme in programmes],
     )

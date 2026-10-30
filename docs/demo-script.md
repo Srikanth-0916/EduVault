@@ -4,11 +4,12 @@
 
 ## Before the demo
 
-1. `docker compose up --build` (or `make demo` once available).
+1. `make demo` (or `docker compose up --build`). The API auto-seeds on first boot.
 2. Confirm `http://localhost:8000/api/v1/health` returns `{"status":"ok"}`.
 3. Confirm the web console at `http://localhost:3000` shows the “Synthetic demo data · Mock integrations” ribbon.
-4. Seed/reset data if needed: `cd apps/api && uv run python -m app.seed --reset`.
-5. Open two browsers or profiles: institution (AIT) and AICTE.
+4. Optional reset: `docker compose exec api python -m app.seed --reset` (synthetic data only).
+5. Optional automated rehearsal: `make smoke` and `make e2e` (screenshots in `docs/evidence/`).
+6. Open two browsers or profiles: institution (AIT) and AICTE.
 
 ## Demo accounts
 
@@ -96,11 +97,11 @@ Sign in as `student@demo-ait.edu`:
 - Review the disclosure summary and authorize.
 - Show QR + copy link + expiry countdown + signed receipt download.
 
-Open the link in a private window (or as `verifier@acme-demo.example`). Show only the granted claims, each with source/status, the demo/mock banner, and receipt download. Point out no name, local ID, DOB, or full APAAR.
+Open the link in a private window. The share card shows a QR code and a link to the public `/verify/<opaque-token>` page (never the raw API URL or APAAR). Show only the granted claims, each with source/status, the demo/mock banner, and receipt download. Point out no name, local ID, DOB, or full APAAR.
 
 ### 10. Revocation / expiry
 
-Revoke the share from the student portal. Reload the public link: generic denial, no claim leakage. Show the verification attempt in the audit trail. Repeat with an expired seeded token.
+Revoke the share from the student portal. Reload the public link: generic denial, no claim leakage. Show the verification attempt in the audit trail. The same generic denial applies to unknown and expired tokens; use `/verify/not-a-real-token` to demonstrate without waiting for expiry.
 
 ### 11. Audit trail
 

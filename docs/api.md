@@ -49,7 +49,12 @@ Send the token as `Authorization: Bearer <jwt>`.
 }
 ```
 
-Common statuses: `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`, `403 FORBIDDEN`, `404 NOT_FOUND`, `409 CONFLICT`, `410 VERIFICATION_UNAVAILABLE`, `413 PAYLOAD_TOO_LARGE`, `429 RATE_LIMITED`.
+Common statuses: `400 VALIDATION_ERROR`, `401 UNAUTHENTICATED`, `403 FORBIDDEN`, `404 NOT_FOUND`, `409 CONFLICT`, `410 VERIFICATION_UNAVAILABLE`, `413 FILE_TOO_LARGE` / `CSV_PARSE_ERROR` (row limit), `415 UNSUPPORTED_FILE_TYPE` / `UNSUPPORTED_MEDIA_TYPE`, `429 RATE_LIMITED`.
+
+`POST /auth/login` is limited to 10 requests/min/IP and
+`GET /public/verify/{token}` to 30 requests/min/IP. A denial returns `429` with
+`Retry-After` and the standard error envelope. The prototype limiter is
+in-process and resets on restart.
 
 ## Roles
 
@@ -228,7 +233,7 @@ Public disclosure:
 
 Allowed claims: `INSTITUTION`, `PROGRAMME`, `ACADEMIC_YEAR`, `ENROLMENT_STATUS`, `RECORD_ACCEPTANCE`, `APAAR_FORMAT_STATUS`, `APAAR_EXTERNAL_STATUS`. Direct identifiers (name, local ID, full APAAR, DOB) are never claims.
 
-Expired, revoked, malformed, or consumed tokens return `410` with a generic body and write a `VerificationAttempt` plus audit event. Every success also writes an attempt and receipt.
+Expired, revoked, malformed, unknown or consumed tokens return the same generic `410` body and write a `VerificationAttempt` plus audit event (unknown tokens store no raw token). Every success also writes an attempt and receipt. The browser-facing verifier page is `/verify/{token}` on the web origin; `verifyUrl` in the authorize response points there.
 
 ## Notifications and audit
 
@@ -242,9 +247,20 @@ Expired, revoked, malformed, or consumed tokens return `410` with a generic body
 | PATCH | `/admin/users/{id}/status` | system admin | Audited |
 | POST | `/admin/users/{id}/roles` | system admin | Audited; technical admin cannot approve regulatory records |
 
+## Upload constraints
+
+CSV upload (`POST /submission-batches/{id}/file`) accepts `.csv` with
+`text/csv`, `application/csv` or `text/plain`, at most 5 MB and 10,000 data
+rows. UTF-8 BOM is accepted; invalid UTF-8, duplicate/missing headers and
+unknown columns are rejected with `details.errors[]`.
+
 ## Health
 
 `GET /health` → `{ "status": "ok", "version": "0.1.0" }`
+
+Responses include `X-Request-Id`, `X-Content-Type-Options`, frame/referrer/
+permissions policies, CSP, CORP/COOP and `X-Robots-Tag`; `Cache-Control` is
+`no-store` and the `Server` banner is removed. Production adds HSTS.
 
 ## Mock adapters
 

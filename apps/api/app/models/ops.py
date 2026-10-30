@@ -12,7 +12,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, pk, sa_enum, utc_now
@@ -58,6 +58,13 @@ class Notification(TimestampMixin, Base):
     """In-app (and mock email) notification delivered to one recipient."""
 
     __tablename__ = "notifications"
+    __table_args__ = (
+        Index(
+            "ix_notifications_recipient_read",
+            "recipient_user_id",
+            "read_at",
+        ),
+    )
 
     id: Mapped[str] = pk()
     recipient_user_id: Mapped[str | None] = mapped_column(

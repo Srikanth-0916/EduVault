@@ -1,0 +1,10 @@
+admin@demo-ait.edu 200
+operator@demo-ait.edu 200
+nodal@demo-ait.edu 200
+reviewer@aicte.demo 200
+supervisor@aicte.demo 200
+analyst@aicte.demo 200
+auditor@aicte.demo 200
+sysadmin@aicte.demo 200
+student@demo-ait.edu 200
+verifier@acme-demo.example 200

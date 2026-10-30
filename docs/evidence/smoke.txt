@@ -1,0 +1,19 @@
+== health and web ==
+PASS  API health
+PASS  web console reachable
+== institution upload -> attest -> submit ==
+PASS  batch created (a1d6e8f5-b7ed-41e3-8fd4-515510533489)
+PASS  CSV uploaded
+PASS  validation ready for attestation
+PASS  nodal attestation recorded
+PASS  batch submitted
+== AICTE review ==
+PASS  reviewer accepted batch
+== reporting export ==
+PASS  aggregate report CSV exported
+== consent verification ==
+PASS  verification request created
+PASS  consent link authorized
+PASS  public verification shows authorized claims
+PASS  revoked link returns generic 410
+SMOKE PASS

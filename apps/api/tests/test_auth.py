@@ -71,9 +71,7 @@ def test_unknown_email_same_generic_error(client, seeded):
 def test_me_requires_bearer(client, seeded):
     assert client.get("/api/v1/auth/me").status_code == 401
     assert (
-        client.get(
-            "/api/v1/auth/me", headers={"Authorization": "Bearer not-a-jwt"}
-        ).status_code
+        client.get("/api/v1/auth/me", headers={"Authorization": "Bearer not-a-jwt"}).status_code
         == 401
     )
 
@@ -105,9 +103,7 @@ def test_token_is_revalidated_after_suspension(client, seeded, db: Session):
 def test_token_is_revalidated_after_role_removal(client, seeded, db: Session):
     headers = auth_headers(client, "operator@demo-ait.edu")
     membership = db.scalar(
-        select(OrganizationMembership).where(
-            OrganizationMembership.user_id == "usr_ait_operator"
-        )
+        select(OrganizationMembership).where(OrganizationMembership.user_id == "usr_ait_operator")
     )
     assert membership is not None
     membership.is_active = False

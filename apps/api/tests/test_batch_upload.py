@@ -31,13 +31,9 @@ def test_valid_csv_reaches_ready_for_attestation(client, seeded, sample_csv) -> 
     assert uploaded.json()["fileChecksum"]
     assert uploaded.json()["rowCount"] == 4
 
-    validated = client.post(
-        f"/api/v1/submission-batches/{batch['id']}/validate", headers=headers
-    )
+    validated = client.post(f"/api/v1/submission-batches/{batch['id']}/validate", headers=headers)
     assert validated.status_code == 200, validated.text
-    detail = client.get(
-        f"/api/v1/submission-batches/{batch['id']}", headers=headers
-    ).json()
+    detail = client.get(f"/api/v1/submission-batches/{batch['id']}", headers=headers).json()
     assert detail["status"] == "READY_FOR_ATTESTATION"
     assert detail["summary"]["errorRows"] == 0
     assert detail["summary"]["warningRows"] >= 1  # NRI attribute review
@@ -48,22 +44,16 @@ def test_malformed_apaar_blocks_and_explains(client, seeded, sample_csv) -> None
     headers = auth_headers(client, "operator@demo-ait.edu")
     batch = create_batch(client, headers)
     upload(client, headers, batch["id"], sample_csv("batch_mixed.csv"))
-    response = client.post(
-        f"/api/v1/submission-batches/{batch['id']}/validate", headers=headers
-    )
+    response = client.post(f"/api/v1/submission-batches/{batch['id']}/validate", headers=headers)
     assert response.status_code == 200, response.text
-    detail = client.get(
-        f"/api/v1/submission-batches/{batch['id']}", headers=headers
-    ).json()
+    detail = client.get(f"/api/v1/submission-batches/{batch['id']}", headers=headers).json()
     assert detail["status"] == "VALIDATION_FAILED"
     finding = next(item for item in detail["findings"] if item["ruleId"] == "BR-002")
     assert finding["code"] == "APAAR_INVALID_FORMAT"
     assert finding["evidence"]["valueMasked"].endswith("••••")
 
 
-def test_raw_apaar_is_not_persisted_in_rows_or_findings(
-    client, seeded, db, sample_csv
-) -> None:
+def test_raw_apaar_is_not_persisted_in_rows_or_findings(client, seeded, db, sample_csv) -> None:
     headers = auth_headers(client, "operator@demo-ait.edu")
     batch = create_batch(client, headers)
     upload(client, headers, batch["id"], sample_csv("batch_mixed.csv"))
@@ -120,10 +110,8 @@ def test_other_institution_cannot_read_batch(client, seeded, sample_csv) -> None
     reviewer = auth_headers(client, "reviewer@aicte.demo")
     # Reviewers may read; another institution role is tested through tenant scope
     # in the enrollment suite. Here an unknown batch is a generic 404.
-    missing = client.get(
-        "/api/v1/submission-batches/batch_does_not_exist", headers=reviewer
-    )
+    missing = client.get("/api/v1/submission-batches/batch_does_not_exist", headers=reviewer)
     assert missing.status_code == 404
-    assert client.get(
-        f"/api/v1/submission-batches/{batch['id']}", headers=reviewer
-    ).status_code == 200
+    assert (
+        client.get(f"/api/v1/submission-batches/{batch['id']}", headers=reviewer).status_code == 200
+    )

@@ -61,6 +61,16 @@ class StudentEnrollment(TimestampMixin, Base):
             sqlite_where=text("is_current = 1"),
             postgresql_where=text("is_current = true"),
         ),
+        Index(
+            "ix_student_enrollments_institution_year",
+            "institution_id",
+            "academic_year",
+        ),
+        Index(
+            "ix_student_enrollments_programme_year",
+            "programme_id",
+            "academic_year",
+        ),
     )
 
     id: Mapped[str] = pk()

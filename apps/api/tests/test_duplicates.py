@@ -85,9 +85,7 @@ def test_case_detail_has_masked_evidence_only(client, seeded, sample_csv) -> Non
     operator = auth_headers(client, "operator@demo-ait.edu")
     upload_and_validate(client, operator, sample_csv("batch_mixed.csv"))
     target = _cases(client, operator)[0]
-    detail = client.get(
-        f"/api/v1/duplicate-cases/{target['id']}", headers=operator
-    )
+    detail = client.get(f"/api/v1/duplicate-cases/{target['id']}", headers=operator)
     assert detail.status_code == 200
     assert "••••••••" in str(detail.json()["evidence"])
     assert "920000000003" not in str(detail.json())

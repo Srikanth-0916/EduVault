@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
 from app.audit import record_audit
+from app.config import get_settings
 from app.db import get_db
 from app.deps import CurrentUser
 from app.errors import forbidden
@@ -35,8 +36,9 @@ public_router = APIRouter(prefix="/public", tags=["public-verification"])
 student_router = APIRouter(prefix="/students", tags=["students"])
 
 
-def _base_url(request: Request) -> str:
-    return str(request.base_url).rstrip("/")
+def _base_url(_request: Request) -> str:
+    """Public verifier lives on the web origin, not the API origin."""
+    return get_settings().web_base_url.rstrip("/")
 
 
 @router.post("", response_model=VerificationRequestOut, status_code=201)

@@ -2,14 +2,46 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
+
+from app.models.base import as_utc
 from sqlalchemy import inspect
 
 
 def test_all_core_tables_create(db):
     inspector = inspect(db.get_bind())
-    expected = {"institutions","campuses","programmes","approval_snapshots","intake_allocations",
-      "users","organization_memberships","student_identities","student_enrollments","enrollment_versions",
-      "submission_batches","submission_rows","validation_runs","validation_findings","duplicate_cases",
-      "identity_verifications","consent_grants","verification_requests","verification_receipts",
-      "verification_attempts","audit_events","notifications","report_exports","integration_clients"}
+    expected = {
+        "institutions",
+        "campuses",
+        "programmes",
+        "approval_snapshots",
+        "intake_allocations",
+        "users",
+        "organization_memberships",
+        "student_identities",
+        "student_enrollments",
+        "enrollment_versions",
+        "submission_batches",
+        "submission_rows",
+        "validation_runs",
+        "validation_findings",
+        "duplicate_cases",
+        "identity_verifications",
+        "consent_grants",
+        "verification_requests",
+        "verification_receipts",
+        "verification_attempts",
+        "audit_events",
+        "notifications",
+        "report_exports",
+        "integration_clients",
+    }
     assert expected <= set(inspector.get_table_names())
+
+
+def test_as_utc_normalizes_sqlite_and_postgres_datetimes():
+    naive = datetime(2026, 10, 31, 12, 0)
+    aware = datetime(2026, 10, 31, 17, 30, tzinfo=UTC)
+    assert as_utc(naive) == naive.replace(tzinfo=UTC)
+    assert as_utc(aware) == aware
+    assert as_utc(aware) - as_utc(naive) == timedelta(hours=5, minutes=30)

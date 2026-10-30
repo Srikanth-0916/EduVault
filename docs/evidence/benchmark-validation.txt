@@ -1,0 +1,13 @@
+rows: 10,000
+upload_seconds: 1.00
+validation_seconds: 12.32
+total_seconds: 13.31
+status: READY_FOR_ATTESTATION
+blocking_findings: 0
+findings_by_rule: {'BR-008': 10000}
+first_finding: POSSIBLE_INTAKE_EXCESS Projected reported enrolment exceeds the approved allocation for this seat classification; review before submission
+first_finding: POSSIBLE_INTAKE_EXCESS Projected reported enrolment exceeds the approved allocation for this seat classification; review before submission
+first_finding: POSSIBLE_INTAKE_EXCESS Projected reported enrolment exceeds the approved allocation for this seat classification; review before submission
+first_finding: POSSIBLE_INTAKE_EXCESS Projected reported enrolment exceeds the approved allocation for this seat classification; review before submission
+first_finding: POSSIBLE_INTAKE_EXCESS Projected reported enrolment exceeds the approved allocation for this seat classification; review before submission
+target_under_300_seconds: PASS

@@ -33,6 +33,17 @@ def utc_now() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
 
 
+def as_utc(value: datetime) -> datetime:
+    """Normalize a database datetime for comparison.
+
+    PostgreSQL returns timezone-aware values for ``TIMESTAMP WITH TIME ZONE``
+    while SQLite returns naive values. Treat naive values as UTC.
+    """
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
+
+
 class Base(DeclarativeBase):
     """Declarative base for the whole prototype data model."""
 

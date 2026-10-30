@@ -39,10 +39,12 @@ This document describes the prototype's security posture and the gaps that must 
 | Audit | Append-only application table, no update/delete routes, masked metadata, actor/IP/UA/trace |
 | Exports | Role/field scoping, aggregate-only analyst path, small-group suppression, formula-injection neutralization, audited |
 | Transport | TLS terminated by deployment; CORS restricted to configured origins; security headers |
-| Rate limits | Login and public verification endpoints (prototype in-process limiter) |
+| Rate limits | Login `10/min/IP`, public verification `30/min/IP`; `429` + `Retry-After` with trace/security headers; prototype in-process sliding window |
 | Secrets | Environment variables; production startup refuses development defaults |
 | Errors | Structured envelope with trace ID; no stack traces or raw values |
-| Logging | No request bodies for auth/verification/upload; redaction filter for 12-digit sequences and bearer tokens |
+| Logging | No request bodies for auth/verification/upload; redaction filter for 12-digit sequences, bearer tokens and sensitive key/value pairs |
+| Headers | `nosniff`, frame denial, referrer policy, permissions policy, CSP, CORP/COOP, `noindex`, `no-store`; `Server` banner removed; HSTS in production |
+| Startup | Development/test-only auto-seed; production never seeds; test env does not create schema implicitly |
 
 ## Threat model (STRIDE summary)
 
@@ -92,7 +94,14 @@ This document describes the prototype's security posture and the gaps that must 
 - Verification token expiry/revocation, generic denial, attempt auditing.
 - Upload size/row/header limits, CSV injection neutralization.
 - Audit append-only route surface and metadata redaction.
-- Rate limiting on login/public verification.
+- Rate limiting on login/public verification, including `Retry-After` and
+  independent buckets per route/IP.
+- Upload extension/media-type/size/row/encoding/header guards.
+- Log-filter redaction of APAAR-shaped digits, bearer tokens and sensitive
+  fields.
 - Secret validation in production mode.
+- Playwright browser flows for dashboard, batch→attest→review, consent→public
+  verification→revocation, and generic unknown-token denial.
+- 10,000-row validation benchmark (`scripts/benchmark_validation.py`).
 
 See `docs/limitations.md` for what this prototype deliberately does not claim.

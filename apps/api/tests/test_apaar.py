@@ -24,11 +24,14 @@ def test_identity_is_deduplicated_by_lookup_token(db: Session) -> None:
     first = upsert_student_identity(db, "111111111111")
     second = upsert_student_identity(db, "111111111111")
     assert first.id == second.id
-    assert db.scalar(
-        select(StudentIdentity).where(
-            StudentIdentity.apaar_lookup_token == apaar_lookup_token("111111111111")
+    assert (
+        db.scalar(
+            select(StudentIdentity).where(
+                StudentIdentity.apaar_lookup_token == apaar_lookup_token("111111111111")
+            )
         )
-    ) is not None
+        is not None
+    )
 
 
 def test_malformed_and_missing_never_store_ciphertext(db: Session) -> None:

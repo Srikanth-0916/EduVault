@@ -115,9 +115,7 @@ def record_audit(
         actor_email=str(email)[:255] if email else None,
         actor_role=str(role)[:64] if role else None,
         action=action[:96],
-        outcome=(
-            outcome.value if isinstance(outcome, AuditOutcome) else str(outcome)
-        )[:32],
+        outcome=(outcome.value if isinstance(outcome, AuditOutcome) else str(outcome))[:32],
         resource_type=resource_type[:64],
         resource_ref=resource_ref[:128] if resource_ref else None,
         institution_id=institution_id or actor_institution,

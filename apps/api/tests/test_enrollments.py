@@ -30,9 +30,7 @@ def _manual_payload(**overrides) -> dict:
 
 def test_manual_enrollment_is_masked_and_versioned(client, seeded) -> None:
     headers = auth_headers(client, "operator@demo-ait.edu")
-    created = client.post(
-        "/api/v1/enrollments", json=_manual_payload(), headers=headers
-    )
+    created = client.post("/api/v1/enrollments", json=_manual_payload(), headers=headers)
     assert created.status_code == 201, created.text
     body = created.json()
     assert body["version"] == 1
@@ -45,9 +43,7 @@ def test_manual_enrollment_is_masked_and_versioned(client, seeded) -> None:
         "MANUAL_REVIEW",
     }
 
-    duplicate = client.post(
-        "/api/v1/enrollments", json=_manual_payload(), headers=headers
-    )
+    duplicate = client.post("/api/v1/enrollments", json=_manual_payload(), headers=headers)
     assert duplicate.status_code == 409
 
     patched = client.patch(
@@ -74,9 +70,7 @@ def test_manual_enrollment_is_masked_and_versioned(client, seeded) -> None:
 
 def test_patch_requires_a_reason(client, seeded) -> None:
     headers = auth_headers(client, "operator@demo-ait.edu")
-    created = client.post(
-        "/api/v1/enrollments", json=_manual_payload(), headers=headers
-    ).json()
+    created = client.post("/api/v1/enrollments", json=_manual_payload(), headers=headers).json()
     response = client.patch(
         f"/api/v1/enrollments/{created['id']}",
         json={"studentFullName": "No Reason"},
@@ -97,12 +91,8 @@ def test_manual_create_rejects_programme_from_another_institution(client, seeded
 
 def test_identity_verification_is_explicitly_mock(client, seeded) -> None:
     headers = auth_headers(client, "operator@demo-ait.edu")
-    created = client.post(
-        "/api/v1/enrollments", json=_manual_payload(), headers=headers
-    ).json()
-    response = client.post(
-        f"/api/v1/enrollments/{created['id']}/verify-identity", headers=headers
-    )
+    created = client.post("/api/v1/enrollments", json=_manual_payload(), headers=headers).json()
+    response = client.post(f"/api/v1/enrollments/{created['id']}/verify-identity", headers=headers)
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["verification"]["isMock"] is True

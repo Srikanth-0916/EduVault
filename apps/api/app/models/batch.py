@@ -90,6 +90,13 @@ class SubmissionRow(TimestampMixin, Base):
     """One raw CSV row staged within a batch, with its parsed outcome."""
 
     __tablename__ = "submission_rows"
+    __table_args__ = (
+        Index(
+            "ix_submission_rows_batch_row_number",
+            "batch_id",
+            "source_row_number",
+        ),
+    )
 
     id: Mapped[str] = pk()
     batch_id: Mapped[str] = uuid_fk("submission_batches.id", index=True)

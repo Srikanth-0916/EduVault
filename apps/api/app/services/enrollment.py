@@ -63,9 +63,7 @@ def _validate_data(data: dict[str, Any]) -> None:
                 try:
                     data[key] = date.fromisoformat(value)
                 except ValueError as exc:
-                    raise validation_error(
-                        "Dates must use YYYY-MM-DD", {"field": key}
-                    ) from exc
+                    raise validation_error("Dates must use YYYY-MM-DD", {"field": key}) from exc
     admission = data.get("admission_date")
     exit_date = data.get("exit_date")
     if isinstance(admission, date) and isinstance(exit_date, date) and exit_date < admission:
@@ -178,15 +176,13 @@ def create_enrollment(
         academic_year=academic_year,
         admission_date=data["admission_date"],
         exit_date=data.get("exit_date"),
-        enrollment_status=data.get("enrollment_status")
-        or EnrollmentStatus.PENDING.value,
+        enrollment_status=data.get("enrollment_status") or EnrollmentStatus.PENDING.value,
         seat_classification=data.get("seat_classification")
         or SeatClassification.APPROVED_REGULAR.value,
         admission_category=data.get("admission_category"),
         nri_status=data.get("nri_status") or DeclaredStatus.UNKNOWN.value,
         oci_status=data.get("oci_status") or DeclaredStatus.UNKNOWN.value,
-        foreign_national_status=data.get("foreign_national_status")
-        or DeclaredStatus.UNKNOWN.value,
+        foreign_national_status=data.get("foreign_national_status") or DeclaredStatus.UNKNOWN.value,
         supernumerary_approval_reference=data.get("supernumerary_approval_reference"),
         version=1,
         is_current=True,
@@ -242,9 +238,10 @@ def supersede_enrollment(
         if identity is None:
             raise not_found("Student identity not found")
 
-    if merged["student_local_id"] != old.student_local_id or merged[
-        "academic_year"
-    ] != old.academic_year:
+    if (
+        merged["student_local_id"] != old.student_local_id
+        or merged["academic_year"] != old.academic_year
+    ):
         existing = _current_for_local_id(
             db,
             old.institution_id,
@@ -306,9 +303,7 @@ def verify_identity(
     if not raw:
         raise validation_error("There is no valid APAAR value to verify")
     result = get_apaar_provider().verify(raw, purpose, {"actorId": actor.id})
-    resulting_status = _STATUS_BY_OUTCOME.get(
-        result.outcome, IdentityStatus.MANUAL_REVIEW.value
-    )
+    resulting_status = _STATUS_BY_OUTCOME.get(result.outcome, IdentityStatus.MANUAL_REVIEW.value)
     identity.identifier_status = resulting_status
     verification = IdentityVerification(
         student_identity_id=identity.id,
@@ -386,9 +381,7 @@ def mark_batch_accepted(db: Session, batch: Any) -> int:
     """Record AICTE acceptance on current enrollments linked to the batch."""
     from app.models.batch import SubmissionRow
 
-    rows = db.scalars(
-        select(SubmissionRow).where(SubmissionRow.batch_id == batch.id)
-    ).all()
+    rows = db.scalars(select(SubmissionRow).where(SubmissionRow.batch_id == batch.id)).all()
     accepted = 0
     for row in rows:
         if not row.enrollment_id:

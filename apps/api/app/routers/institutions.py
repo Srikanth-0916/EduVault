@@ -87,9 +87,7 @@ def list_my_programmes(
         .where(Programme.institution_id == user.institution_id)
         .order_by(Programme.programme_name.asc())
     ).all()
-    return [
-        programme_out(db, programme, academic_year) for programme in programmes
-    ]
+    return [programme_out(db, programme, academic_year) for programme in programmes]
 
 
 @router.get("/me/intake", response_model=list[CapacityOut])
@@ -133,9 +131,7 @@ def list_institutions(
 
     total = int(db.scalar(count_statement) or 0)
     institutions = db.scalars(
-        statement.order_by(Institution.name.asc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
+        statement.order_by(Institution.name.asc()).offset((page - 1) * page_size).limit(page_size)
     ).all()
     return Page[InstitutionOut](
         items=[institution_out(db, institution) for institution in institutions],
@@ -154,9 +150,7 @@ def create_institution(
 ) -> InstitutionOut:
     code = payload.aicte_institution_code.strip().upper()
     exists = db.scalar(
-        select(Institution).where(
-            func.upper(Institution.aicte_institution_code) == code
-        )
+        select(Institution).where(func.upper(Institution.aicte_institution_code) == code)
     )
     if exists is not None:
         raise conflict("An institution with this AICTE code already exists")
@@ -196,9 +190,7 @@ def list_campuses(
     _get_institution(db, institution_id)
     assert_institution_access(db, user, institution_id, request)
     campuses = db.scalars(
-        select(Campus)
-        .where(Campus.institution_id == institution_id)
-        .order_by(Campus.name.asc())
+        select(Campus).where(Campus.institution_id == institution_id).order_by(Campus.name.asc())
     ).all()
     return [campus_out(campus) for campus in campuses]
 
@@ -273,6 +265,4 @@ def list_institution_programmes(
         .where(Programme.institution_id == institution_id)
         .order_by(Programme.programme_name.asc())
     ).all()
-    return [
-        programme_out(db, programme, academic_year) for programme in programmes
-    ]
+    return [programme_out(db, programme, academic_year) for programme in programmes]

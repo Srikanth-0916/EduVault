@@ -55,9 +55,7 @@ def _allocation_out(allocation: IntakeAllocation) -> IntakeAllocationOut:
     )
 
 
-def _snapshot_out(
-    db: Session, snapshot: ApprovalSnapshot
-) -> ApprovalSnapshotOut:
+def _snapshot_out(db: Session, snapshot: ApprovalSnapshot) -> ApprovalSnapshotOut:
     allocations = db.scalars(
         select(IntakeAllocation)
         .where(IntakeAllocation.approval_snapshot_id == snapshot.id)
@@ -95,9 +93,7 @@ def list_programmes(
     if campus_id:
         statement = statement.where(Programme.campus_id == campus_id)
     programmes = db.scalars(statement.order_by(Programme.programme_name.asc())).all()
-    return [
-        programme_out(db, programme, academic_year) for programme in programmes
-    ]
+    return [programme_out(db, programme, academic_year) for programme in programmes]
 
 
 @router.get("/programmes/{programme_id}", response_model=ProgrammeOut)
@@ -283,9 +279,7 @@ def update_allocation(
     programme = _get_programme(db, snapshot.programme_id)
 
     new_count = (
-        allocation.approved_count
-        if payload.approved_count is None
-        else payload.approved_count
+        allocation.approved_count if payload.approved_count is None else payload.approved_count
     )
     new_reference = (
         allocation.authorization_reference
@@ -297,9 +291,7 @@ def update_allocation(
         and new_count > 0
         and not (new_reference or "").strip()
     ):
-        raise validation_error(
-            "Supernumerary allocations require an authorization reference"
-        )
+        raise validation_error("Supernumerary allocations require an authorization reference")
 
     before = {
         "approvedCount": allocation.approved_count,
