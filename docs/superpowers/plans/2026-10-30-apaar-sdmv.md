@@ -357,9 +357,9 @@ def test_malformed_apaar_blocks_and_explains(client, operator_headers):
     assert finding["code"] == "APAAR_INVALID_FORMAT"
     assert finding["evidence"]["valueMasked"].endswith("••••")
 
-def test_submit_requires_attestation(client, operator_headers):
-    detail = upload_and_validate(client, operator_headers, "batch_valid.csv")
-    r = client.post(f"/api/v1/submission-batches/{detail['id']}/submit", headers=operator_headers)
+def test_submit_requires_attestation(client, nodal_headers):
+    detail = upload_and_validate(client, nodal_headers, "batch_valid.csv")
+    r = client.post(f"/api/v1/submission-batches/{detail['id']}/submit", headers=nodal_headers)
     assert r.status_code == 409
 
 def test_nodal_attest_submit_and_reviewer_accept(client, nodal_headers, reviewer_headers):
@@ -408,7 +408,7 @@ git commit -m "feat: add enrollment ingestion, validation, duplicate cases and b
 - Create: `src/hooks/use-dashboard.ts`, `use-master-data.ts`, `use-students.ts`
 - Create: `src/app/(portal)/institution/programmes/loading.tsx`, `students/loading.tsx`
 - Modify: `src/lib/types.ts`, `api.ts`, `nav.ts`
-- Create: `apps/web/src/lib/__tests__/status.test.ts`
+- Create: `src/components/institution/__tests__/identity-status.test.tsx`
 
 **Interfaces:**
 - Consumes: `GET /dashboard/institution`, `/institutions/me`, `/programmes`, `/intake`, `/enrollments`, `/enrollments/{id}`, `POST/PATCH /enrollments`, `/verify-identity`.
@@ -430,7 +430,7 @@ it("does not label a format-valid identity as verified", () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd apps/web && npm run test -- --run src/lib/__tests__/status.test.tsx`  
+Run: `cd apps/web && npm run test -- --run src/components/institution/__tests__/identity-status.test.tsx`  
 Expected: FAIL.
 
 - [ ] **Step 3: Implement institution surfaces**
@@ -472,9 +472,10 @@ git commit -m "feat: add institution dashboard, programme and student experience
 - [ ] **Step 1: Write failing tests**
 
 ```tsx
-it("disables submit before attestation", () => {
+it("disables attestation until the declaration is accepted", () => {
   render(<AttestationDialog batch={{ status: "READY_FOR_ATTESTATION", attestedAt: null }} canAttest />);
-  expect(screen.getByRole("button", { name: /submit batch/i })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: /attest and submit/i }));
+  expect(screen.getByRole("button", { name: /confirm attestation/i })).toBeDisabled();
 });
 ```
 
@@ -765,7 +766,7 @@ git commit -m "feat: add consent-scoped verification, signed receipts and public
 - Create: `src/components/student/{record-card,identity-card,share-wizard,share-list,qr-dialog,consent-history}.tsx`
 - Create: `src/components/verify/{verification-result,claim-card,receipt-download,denied-state,verified-header}.tsx`
 - Create: `src/hooks/{use-student,use-verification}.ts`
-- Modify: `src/lib/types.ts`, `api.ts`, `nav.ts`, `middleware.ts` (allow `/verify/*` and `/login` unauthenticated)
+- Modify: `src/lib/types.ts`, `api.ts`, `nav.ts`
 - Create: `src/components/student/__tests__/share-wizard.test.tsx`
 
 **Interfaces:**

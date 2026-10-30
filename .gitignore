@@ -1,0 +1,38 @@
+# Superpowers SDD scratch
+.superpowers/
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Runtime data
+var/
+data/sessions/
+*.db
+*.sqlite
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
