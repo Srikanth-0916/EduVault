@@ -1,10 +1,29 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import "@fontsource/public-sans/400.css";
+import "@fontsource/public-sans/500.css";
+import "@fontsource/public-sans/600.css";
+import "@fontsource/public-sans/700.css";
+import "@fontsource/sora/600.css";
+import "@fontsource/sora/700.css";
 import "./globals.css";
 
+import { DemoBanner } from "@/components/layout/demo-banner";
+import { Providers } from "@/lib/providers";
+
 export const metadata: Metadata = {
-  title: "APAAR-SDMV",
+  title: {
+    default: "APAAR-SDMV · Student Data Platform",
+    template: "%s · APAAR-SDMV",
+  },
   description:
-    "Student Data Management & Verification Platform prototype. Synthetic data only; mock integrations.",
+    "Student Data Management & Verification Platform prototype. Synthetic data only; all external integrations are mock/sandbox.",
+  robots: { index: false, follow: false },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0B1F33",
 };
 
 export default function RootLayout({
@@ -13,14 +32,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-dvh antialiased">
-        {/* Persistent demo/mock ribbon (plan global constraint) */}
-        <div
-          role="note"
-          className="bg-amber-600 px-4 py-2 text-center text-xs font-medium tracking-wide text-white"
-        >
-          Synthetic demo data · Mock integrations
-        </div>
-        {children}
+        <DemoBanner />
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
